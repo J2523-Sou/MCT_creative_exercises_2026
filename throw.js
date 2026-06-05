@@ -1,6 +1,6 @@
 // cluster Creator Kit の Scriptable Item に設定する発射用スクリプトです。
 // 元の throw.cs の「クリックで1発発射、Rキーで装填」を、
-// cluster では「使う(onUse)で発射、インタラクト(onInteract)で装填」に置き換えています。
+// cluster では「掴んで使う(onUse)」または「配置物を使う(onInteract)」で発射する形に置き換えています。
 
 // World Item Template List に登録したボールのIDに合わせて変更してください。
 const BALL_TEMPLATE_ID = "ball";
@@ -20,17 +20,16 @@ $.onStart(() => {
   $.state.shotCount = MAX_SHOT_COUNT;
 });
 
-$.onUse((isDown, player) => {
-  // 「使う」ボタンを押した瞬間だけ処理します。離した瞬間(isDown=false)では何もしません。
-  if (!isDown) return;
-
+function shoot(consumeAmmo) {
   const shotCount = $.state.shotCount === undefined ? MAX_SHOT_COUNT : $.state.shotCount;
-  if (shotCount <= 0) {
-    $.log("弾がありません。インタラクトで再装填してください。");
-    return;
+  if (consumeAmmo && shotCount <= 0) {
+    $.log("弾がありません。発射用アイテムを持ち直すと再装填します。");
+    return false;
   }
 
-  $.state.shotCount = shotCount - 1;
+  if (consumeAmmo) {
+    $.state.shotCount = shotCount - 1;
+  }
 
   // アイテムのローカルZ軸正方向を、ワールド座標の発射方向に変換します。
   const rotation = $.getRotation();
@@ -49,10 +48,24 @@ $.onUse((isDown, player) => {
   ball.addImpulsiveForce(forward.multiplyScalar(SHOT_SPEED));
 
   $.log("発射しました。");
+  return true;
+}
+
+$.onUse((isDown, player) => {
+  // 掴んでいるアイテムの「使う」を押した瞬間だけ処理します。離した瞬間(isDown=false)では何もしません。
+  if (!isDown) return;
+
+  shoot(true);
+});
+
+$.onGrab((isGrab, isLeftHand, player) => {
+  if (isGrab) {
+    $.state.shotCount = MAX_SHOT_COUNT;
+  }
 });
 
 $.onInteract(player => {
-  // Unity版の R キー相当です。発射用アイテムをインタラクトすると1発再装填します。
-  $.state.shotCount = MAX_SHOT_COUNT;
-  $.log("再装填しました。");
+  // 掴めない配置アイテムを左クリック/タップ/VRトリガーで「使う」場合はこちらが呼ばれます。
+  // 配置物では再装填操作を分けにくいため、左クリックごとに発射できるよう弾数を消費しません。
+  shoot(false);
 });
