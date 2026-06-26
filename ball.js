@@ -6,7 +6,7 @@ const LIFE_TIME_SECONDS = 10;
 
 // 手に持って「使う」動作をしたときに加える撃力です。
 // 元の ball.cs の AddForce(... * 50, ForceMode.Impulse) に相当します。
-const USE_IMPULSE = 25;
+const USE_IMPULSE = 15;
 
 // 手放したあとに設定する初速です。撃力が効かない設定でも動作確認しやすくするため併用します。
 const LAUNCH_SPEED = 3;
