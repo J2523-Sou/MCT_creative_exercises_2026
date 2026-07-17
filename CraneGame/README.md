@@ -1,297 +1,357 @@
-# Crane Game
+# cluster Crane Game
 
-`newCrene.fbx` と `magatama.fbx` を使用した、Unity／cluster向けクレーンゲームです。
-完成済みの `Prefabs/CraneGame.prefab` に筐体、クレーン、景品、操作ボタン、排出口、照明、入力、物理設定をまとめています。
+cluster Creator Kitで動作するクレーンゲームです。
 
-## まず動かす：別シーンへの導入手順
+- クレーンモデル：`newCrene.fbx`
+- 景品モデル：`magatama.fbx`
+- 完成済みPrefab：`CraneGame/Prefabs/CraneGame.prefab`
+- cluster用処理：`CraneGame/Cluster/*.js`
 
-同じUnityプロジェクト内なら、次の手順だけで導入できます。
+筐体、クレーン、景品、操作ボタン、排出口、照明、Collider、Rigidbody、ClusterScript参照はPrefabへ保存済みです。
+基本的にはPrefabをSceneへ配置し、位置と向きを合わせてアップロード前検証を行うだけで導入できます。
 
-1. 導入先のSceneを開きます。
-2. Projectウィンドウで `CraneGame/Prefabs/CraneGame.prefab` を選びます。
-3. PrefabをHierarchyへドラッグします。
-4. `CraneGameRoot` のPositionとRotationだけを、設置したい場所へ合わせます。
-5. `CraneGameRoot` のScaleが必ず `(1, 1, 1)` であることを確認します。
-6. `Tools > Crane Game > Validate Crane Game` を実行します。
-7. Consoleに `CraneGame validation PASS` が表示されることを確認します。
-8. Play Modeを開始し、WASD／矢印キーで移動、Space／GでGrab、RでResetを確認します。
-9. Sceneを保存します。
+## 必要な環境
 
-Prefab内部の参照は設定済みです。通常はInspectorで参照を割り当て直す必要はありません。
+- Unity 6.2系
+- cluster Creator Kit 3.x
+- clusterへアップロード可能なCreator Kit設定
+- `CraneGame` フォルダ一式
 
-## 導入時にしてよい変更／避ける変更
+別プロジェクトへ移植する場合は、GUID参照を維持するため `.meta` を含む `CraneGame` フォルダ全体をコピーしてください。
 
-してよい変更：
+## 最短導入手順
 
-- `CraneGameRoot` のPositionとRotationを変更する
-- `HomePosition`、`DropPosition`、`RespawnPosition_*` を調整する
-- 各Componentの速度、待機時間、滑り確率、景品寿命を調整する
-- `Prize.prefab` を複製して景品数を増やす
+### 1. cluster用Sceneを開く
 
-避ける変更：
+1. clusterへアップロードするSceneをUnityで開きます。
+2. SceneにSpawn Pointなど、通常のclusterワールド設定があることを確認します。
+3. Sceneを保存します。
 
-- `CraneGameRoot` を拡大・縮小する
-- `Carriage`、`LiftAssembly`、爪だけへ非一様Scaleを追加する
-- `MovementSpace`、ボタン、景品のcluster Itemを親子にする
-- `Carriage` や `LiftAssembly` をAnimationとScriptの両方から同時に動かす
-- `claw_armL`、`claw_armL.001`、各Sensorの名前を変更する
+### 2. CraneGame Prefabを配置する
 
-筐体サイズを変える場合はPrefabルートではなく、Editor構築スクリプトの設定を変更して再構築してください。
+1. Projectウィンドウで `CraneGame/Prefabs/CraneGame.prefab` を選びます。
+2. PrefabをHierarchyへドラッグします。
+3. 追加された `CraneGameRoot` を選択します。
+4. Positionを設置場所へ合わせます。
+5. RotationのYだけを、筐体を向けたい方向へ変更します。
+6. Scaleが必ず `(1, 1, 1)` であることを確認します。
 
-## Prefabに含まれるもの
+筐体全体を回転させる場合は、子Objectではなく `CraneGameRoot` を回転させてください。Y軸回転には対応しています。
+X/Z方向へ筐体を傾ける構成は、重力と床判定がワールドY方向になるため非対応です。
+
+### 3. Prefab階層を確認する
+
+Prefabは次の構成です。
 
 ```text
-CraneGameRoot                     ゲーム全体。Scaleは(1,1,1)
+CraneGameRoot                     Itemではないゲーム全体のルート
 ├── Cabinet                       筐体、PlayField、天井、フレーム
-├── MovementSpace                 クレーンのローカル座標基準／cluster Controller Item
+├── MovementSpace                 クレーン制御用Item／Scriptable Item
 │   └── Carriage                  水平移動
 │       └── LiftAssembly          上下移動
-│           ├── newCrene          本体、左右の爪、Convex MeshCollider
-│           └── GripAnchor        把持補助の基準
-├── HomePosition                  待機位置
+│           ├── newCrene          クレーン本体と左右の爪
+│           └── GripAnchor        把持位置の基準
+├── HomePosition                  初期位置
 ├── DropPosition                  景品を離す位置
-├── Prizes                        magatama景品
+├── Prizes
+│   ├── Prize_1                   Movable Item／Scriptable Item
+│   ├── Prize_2                   Movable Item／Scriptable Item
+│   └── Prize_3                   Movable Item／Scriptable Item
 ├── RespawnPositions              景品の復活位置
 ├── PrizeChute                    排出口
-├── Controls                      移動、Grab、Resetボタン
-├── CraneInteriorLight            照明
-└── GuideDisplay                  操作案内
+├── Controls
+│   ├── LeftButton                個別Item／Scriptable Item
+│   ├── RightButton               個別Item／Scriptable Item
+│   ├── ForwardButton             個別Item／Scriptable Item
+│   ├── BackButton                個別Item／Scriptable Item
+│   ├── GrabButton                個別Item／Scriptable Item
+│   └── ResetButton               個別Item／Scriptable Item
+├── CraneInteriorLight
+└── GuideDisplay
 ```
 
-## 操作方法
+clusterではItemの子へ別のItemを配置できません。次を維持してください。
 
-- WASD／矢印キー：前後左右へ移動
-- Space／G：Grabシーケンス開始
-- R：クレーンと全景品をReset
-- Editorでは筐体前面の立体ボタンもマウス操作可能
+- `CraneGameRoot` 自体はItemにしない
+- `MovementSpace`、各ボタン、各景品は兄弟Itemにする
+- `Carriage` と `LiftAssembly` は `MovementSpace` Itemの子にする
+- ボタンItemや景品Itemを別Itemの子へ移動しない
 
-入力がない間は移動しません。Grab中は水平入力とGrabの多重実行を受け付けません。
+### 4. クレーン用ClusterScriptを確認する
 
-## 実装の流れ
+`MovementSpace` を選択し、次を確認します。
 
-### 1. 入力を共通APIへ渡す
+1. Itemコンポーネントがある
+2. Scriptable Itemコンポーネントがある
+3. Source Code Assetに `CraneGame/Cluster/CraneClusterController.js` が設定されている
+4. `Carriage`、`LiftAssembly`、`newCrene` が子階層にある
+5. `LeftGripSensor` と `RightGripSensor` にOverlap Detector Shapeがある
 
-入力側はTransformを直接変更せず、`ICraneCommandReceiver` を呼びます。
+`CraneClusterController.js` が水平移動、下降、爪の開閉、上昇、Drop移動、Home復帰を管理します。
 
-```csharp
-receiver.SetMoveInput(new Vector2(x, z));
-receiver.TryStartGrab();
-receiver.RequestReset();
-```
+### 5. 操作ボタン用ClusterScriptを確認する
 
-- Editor入力：`KeyboardCraneInputAdapter.cs`
-- 立体ボタン：`CraneWorldButton.cs`
-- 共通受信API：`ICraneCommandReceiver.cs`
-- cluster入力：`Cluster/CraneButton*.js`
+各ボタンには、次のJavaScriptが設定されています。
 
-入力環境を追加するときは、新しいAdapterからこの3メソッドだけを呼びます。
+| Button | ClusterScript |
+| --- | --- |
+| `LeftButton` | `CraneButtonLeft.js` |
+| `RightButton` | `CraneButtonRight.js` |
+| `ForwardButton` | `CraneButtonForward.js` |
+| `BackButton` | `CraneButtonBack.js` |
+| `GrabButton` | `CraneButtonGrab.js` |
+| `ResetButton` | `CraneButtonReset.js` |
 
-### 2. 水平移動を処理する
+各ボタンを選択し、Item、Scriptable Item、Collider、対応するSource Code Assetが設定されていることを確認します。
 
-`CraneController.cs` が入力を受け取り、`Carriage` を `MovementSpace` のローカル座標基準で移動します。
+ボタンは半径10m以内へ `mct-crane-command` を送信します。移動命令は `MovementSpace` のControllerが受信します。
 
-1. 入力値を正規化します。
-2. `moveSpeed * Time.deltaTime` でフレームレート非依存の移動量を求めます。
-3. Xを `-1.70..1.70`、Zを `-0.90..0.90` にClampします。
-4. 入力を離すと移動値をゼロへ戻します。
-5. Grab中は入力を無効化します。
+### 6. 景品用ClusterScriptを確認する
 
-端に到達しても逆方向入力は受け付けます。
+各 `Prize_*` を選択し、次を確認します。
 
-### 3. 初期位置を天井へ合わせる
+1. Itemコンポーネントがある
+2. Movable Itemコンポーネントがある
+3. Scriptable Itemコンポーネントがある
+4. Source Code Assetに `CraneClusterPrize.js` が設定されている
+5. Rigidbodyが非Kinematicである
+6. 子の `MagatamaVisual` にConvex MeshColliderがある
 
-`CraneGameSetup.cs` の `AlignCraneToCeiling` が、newCrene全Rendererの上端と天井Colliderの内面を計測します。
+景品は排出口、Y下限、水平範囲外、寿命、Resetを条件として復活します。
 
-1. newCreneのRenderer Bounds上端を取得します。
-2. `Cabinet/Top` の内面Yを取得します。
-3. 上端と内面の差だけ `Carriage` を移動します。
-4. 同じYを `HomePosition` と `DropPosition` に保存します。
+### 7. 自動Validatorを実行する
 
-現在の初期値はCarriage Y約`4.467`、newCrene上端と天井内面はY`4.830`で一致します。
-
-### 4. 爪を床面まで下降させる
-
-`CraneGrabSequence.cs` は固定下降量だけに依存せず、Grab開始時に実際のBoundsを再計算します。
-
-1. newCrene全Rendererの最下点を取得します。
-2. `PlayField` Colliderの上面を取得します。
-3. 最下点から床上面と`floorClearance`を引いて下降距離を求めます。
-4. Inspectorの`lowerDistance`を最大値としてClampします。
-5. `LiftAssembly` を算出位置まで下降させます。
-
-標準設定では実下降距離が約`2.975`、開いた爪と床の隙間が約`0.01`です。モデルや床高を変えてもC#側は実Boundsから再計算します。
-
-### 5. 爪を閉じて景品を把持する
-
-1. `CraneClawController` が左右の爪を対称に回転します。
-2. `LeftGripSensor` と `RightGripSensor` が接触中の`Prize`を記録します。
-3. 両Sensorが同じ景品へ触れた場合だけ `PrizeGripAssist` が把持を補助します。
-4. 補助には破断可能な`FixedJoint`を使用します。
-5. 距離超過や滑り確率で景品を落とすため、成功率は100%固定ではありません。
-
-爪と景品は簡略化したConvex MeshColliderを使用します。動的Rigidbodyへ非Convex MeshColliderは使用しません。
-
-### 6. Grabシーケンスを進める
-
-`CraneGrabSequence` が次の順に状態を進めます。
+Unityメニューから次を実行します。
 
 ```text
-Idle
-  -> Lowering
-  -> Closing
-  -> Lifting
-  -> MovingToDrop
-  -> Releasing
-  -> ReturningHome
-  -> Idle
+Tools > Crane Game > Validate Crane Game
 ```
 
-1. 水平操作を停止します。
-2. 床面まで下降します。
-3. 爪を閉じます。
-4. 景品を持ち上げます。
-5. `DropPosition` へ移動します。
-6. 爪を開いて景品を離します。
-7. `HomePosition` へ戻ります。
-8. 操作を再開します。
+Consoleで次を確認します。
 
-### 7. Resetする
+```text
+Crane clearance PASS
+Crane vertical placement PASS
+CraneGame validation PASS
+```
 
-`RequestReset()` は次を一括実行します。
+標準状態では次の値になります。
 
-1. 実行中のCoroutineを停止します。
-2. 把持中のJointを解放します。
-3. 爪を開きます。
-4. `LiftAssembly` を上昇位置 `(0, 0, 0)` へ戻します。
-5. `Carriage` をYを含む `HomePosition` 全座標へ戻します。
-6. 全景品を重ならないRespawnPositionへ戻します。
-7. 速度と角速度をゼロにします。
+- `ceilingGap=0.000`付近
+- `floorTravel=2.975`付近
+- Home Y=`4.467`付近
 
-Yを含めて復元するため、Reset後に古い高さへ戻ることはありません。
+ValidatorがFAILEDの場合はアップロードせず、表示された参照、Item階層、Colliderを修正してください。
 
-### 8. 景品を復活させる
+### 8. Creator Kitのアップロード前チェックを行う
 
-`PrizeRespawner.cs` が次の条件を監視します。
+1. Creator Kitのアップロード画面を開きます。
+2. 現在のSceneが対象になっていることを確認します。
+3. Item入れ子、Missing Script、Collider、容量に関するエラーがないことを確認します。
+4. エラーがある場合はアップロード前に修正します。
+5. 問題がなければワールドをアップロードします。
 
-- 排出口へ入った
-- Yが`-1.5`未満になった
-- ローカル監視範囲外へ出た
-- 90秒経過した
-- Resetが押された
+### 9. cluster実機で確認する
 
-復活時は空いている`RespawnPosition_*`を選び、Rigidbodyの速度と角速度を消します。
+アップロード後、cluster上で次を順番に確認します。
 
-## Inspector参照
+1. 各移動ボタンが反応する
+2. クレーンが筐体外へ出ない
+3. 端まで移動した後、逆方向へ戻れる
+4. Grabボタンで下降を開始する
+5. 爪が床面付近まで届く
+6. 爪が閉じて景品を持ち上げる
+7. Drop位置へ移動する
+8. 景品を離す
+9. クレーンがHomeへ戻る
+10. Reset後も正しい高さへ戻る
+11. Reset直後のGrabでも床面へ届く
+12. 景品が条件に応じてRespawnする
 
-Prefabには次の参照が保存済みです。手動で再構築する場合だけ設定してください。
+## cluster上の動作順序
 
-| Component | 設定する参照 |
-| --- | --- |
-| `CraneController` | `MovementRoot = Carriage`、`MovementSpace`、`GrabSequence`、`PrizeRespawner` |
-| `CraneGrabSequence` | `Controller`、`Carriage`、`LiftAssembly`、`Claw`、`GripAssist`、`HomePosition`、`DropPosition`、`CraneModel = newCrene`、`PlayFieldCollider` |
-| `CraneClawController` | `claw_armL`、`claw_armL.001`、ローカル回転軸 |
-| `PrizeGripAssist` | `GripAnchor`、左右の`ClawContactSensor` |
-| `PrizeRespawner` | `CoordinateSpace = CraneGameRoot`、複数の`RespawnPosition` |
-| `Prize` | `PrizeRespawner`、非Kinematic Rigidbody、子のConvex MeshCollider |
-| `KeyboardCraneInputAdapter` | `CraneController` |
+Grab命令を受けると、`CraneClusterController.js` が次の状態を進めます。
 
-## 景品を増やす／差し替える
+```text
+idle
+  -> lowering
+  -> closing
+  -> contactSettle
+  -> lifting
+  -> drop
+  -> opening
+  -> releaseWait
+  -> home
+  -> idle
+```
 
-1. `Prefabs/Prize.prefab` を複製します。
-2. 複製した景品を `CraneGameRoot/Prizes` の子へ置きます。
-3. Rigidbodyを非Kinematicにします。
-4. 見た目に合うConvex Colliderを設定します。
-5. `Prize.respawner` にルートの`PrizeRespawner`を割り当てます。
-6. 景品数以上の`RespawnPosition`を用意します。
-7. 爪と景品が初期状態で重ならないことを確認します。
-8. Grab成功率と滑り方をPlay Modeで調整します。
+1. 水平移動命令を停止します。
+2. `LiftAssembly` を床面付近まで下降します。
+3. 左右の爪を閉じます。
+4. 両方のOverlap Detectorが同じ景品Itemを検出した場合だけ搬送命令を送ります。
+5. 景品とクレーンを同じ時間軸で上昇させます。
+6. Drop位置へ水平移動します。
+7. 爪を開きます。
+8. 景品を離します。
+9. Homeへ戻ります。
+10. 再び操作可能になります。
 
-標準のmagatama景品は、子の`MagatamaVisual`へ簡略化Convex MeshColliderを設定しています。
+Grab命令の多重実行は受け付けません。
 
-## clusterで使用する
+## 初期位置と床面調整
 
-Prefabにはcluster用ItemとClusterScriptの参照も保存済みです。
+### 天井への配置
 
-1. cluster Creator Kit 3.xが導入されていることを確認します。
-2. `CraneGame.prefab` をSceneへ配置します。
-3. `MovementSpace` にItem／Scriptable Itemと `CraneClusterController.js` が設定されていることを確認します。
-4. 各ボタンに個別のItem／Scriptable Itemと対応する `CraneButton*.js` が設定されていることを確認します。
-5. 各景品にItem／Movable Item／Scriptable Itemと `CraneClusterPrize.js` が設定されていることを確認します。
-6. `LeftGripSensor` と `RightGripSensor` にOverlap Detector Shapeがあることを確認します。
-7. `Tools > Crane Game > Validate Crane Game` を実行します。
-8. Creator Kitのアップロード前チェックを実行します。
-9. clusterへアップロードして全ボタン、Grab、Resetを確認します。
+newCreneのRenderer上端は、筐体天井の内面へ揃えています。
 
-cluster Itemの配置規則：
+- Carriage／Home Y：約`4.467`
+- newCrene上端Y：約`4.830`
+- 天井内面Y：約`4.830`
 
-- `MovementSpace`、各ボタン、各景品は兄弟Itemにします。
-- Itemの子へ別Itemを入れないでください。
-- ボタンは半径10m以内へ `mct-crane-command` を送ります。
-- 1Sceneへ複数台置く場合は、他台へ命令が届かないようメッセージ名または通信範囲を台ごとに分けてください。
+`Tools > Crane Game > Build or Repair newCrene Game` を実行すると、Renderer Boundsから天井位置を再計算します。
 
-cluster版の高さと下降基準は `CraneClusterController.js` 先頭の定数です。モデルや筐体寸法を変えた場合は、C#側の実測結果に合わせて `HOME_Y` と `MINIMUM_GRIP_HEIGHT` を更新してください。
+### 床面への下降
 
-## 自動構築／修復メニュー
+標準設定では次の値です。
 
-`Tools > Crane Game > Build or Repair newCrene Game` は次を実行します。
+- cluster最大下降距離：`3.58`
+- 実際の下降距離：約`2.974`
+- GripAnchor最低Y：`0.46`
+- 開いた爪と床面の隙間：約`0.01`
 
-1. `newCrene.fbx` と `magatama.fbx` を読み込みます。
-2. 筐体、操作盤、排出口、照明を作成または修復します。
-3. 爪と景品のConvex MeshColliderを作成します。
-4. 左右Sensorと把持補助を接続します。
-5. Home、Drop、Respawn位置を設定します。
-6. newCrene上端を天井内面へ整列します。
-7. 床面到達用の参照を `CraneGrabSequence` へ保存します。
-8. cluster Item階層とClusterScript参照を修復します。
-9. `CraneGame.prefab` と `Prize.prefab` を保存します。
-10. Validatorを実行します。
+cluster版は `CraneClusterController.js` 先頭の `HOME_Y`、`LOWER_DISTANCE`、`MINIMUM_GRIP_HEIGHT` を使用します。
+モデル、床、筐体の寸法を変更した場合は、Unity Validatorの実測値に合わせてこれらを更新してください。
 
-既存の`CraneGameRoot`がある場合は全面置換せず、既存ルートを維持して参照とColliderを修復します。
+## Reset処理
 
-## 検証手順
+Resetボタンは次を実行します。
 
-1. `Tools > Crane Game > Validate Crane Game` を実行します。
-2. `ceilingGap=0.000`付近であることを確認します。
-3. `floorTravel=2.975`付近であることを確認します。
-4. Play Modeで入力を離すと停止することを確認します。
-5. 端まで移動後、逆方向へ戻れることを確認します。
-6. Grabで床面まで下降することを確認します。
-7. `Lowering -> Closing -> Lifting -> MovingToDrop -> Releasing -> ReturningHome -> Idle` の順に進むことを確認します。
-8. Reset直後にGrabしても同じ床面へ到達することを確認します。
-9. 景品が排出口、範囲外、Y下限、寿命、Resetで復活することを確認します。
-10. Consoleにコンパイルエラー、NullReferenceException、MissingReferenceExceptionがないことを確認します。
+1. CarriageをHome `(0, 4.467, 0)` へ戻す
+2. LiftAssemblyを `(0, 0, 0)` へ戻す
+3. 爪を開く
+4. 移動命令を解除する
+5. 実行中のシーケンスをIdleへ戻す
+6. 景品をRespawn位置へ戻す
 
-## 初期調整値
+起動時の古い座標をReset先として再利用せず、Prefabと同じHome定数へ戻します。
+
+## 景品の追加方法
+
+1. `CraneGame/Prefabs/Prize.prefab` を複製します。
+2. 複製した景品を `CraneGameRoot/Prizes` の子へ配置します。
+3. 既存の景品Itemの子には配置しないでください。
+4. Item、Movable Item、Scriptable Itemを確認します。
+5. `CraneClusterPrize.js` を設定します。
+6. Rigidbodyを非Kinematicにします。
+7. Convex Colliderを設定します。
+8. 景品数以上の `RespawnPosition_*` を用意します。
+9. 初期位置で景品同士や爪と重ならないことを確認します。
+
+標準の `Prize.prefab` はmagatamaモデル、Rigidbody、簡略化Convex MeshColliderを設定済みです。
+
+## 別Sceneで使用する
+
+同じプロジェクト内の別Sceneでは、次の作業だけで利用できます。
+
+1. `CraneGame.prefab` を新しいSceneへ配置する
+2. `CraneGameRoot` のPositionとY Rotationを設定する
+3. Scaleを `(1, 1, 1)` にする
+4. Validatorを実行する
+5. Creator Kitのアップロード前チェックを行う
+6. cluster上でボタンとGrabを確認する
+
+ランタイム処理はScene名や `GameObject.Find` に依存しません。Prefab内部参照で動作します。
+
+## 筐体を回転する
+
+`CraneGameRoot` のY Rotationを変更すると、筐体、操作盤、Home、Drop、Respawn、クレーン座標系がまとめて回転します。
+
+例：
+
+- 通常向き：Y Rotation=`0`
+- 反対向き：Y Rotation=`180`
+
+Editor用C#とcluster Controllerは、MovementSpaceまたはItemのローカル座標で移動します。
+
+### 複数台／背中合わせの注意
+
+現在のボタンは半径10mへ同じ `mct-crane-command` を送ります。2台を10m以内へ置くと、別筐体のControllerも命令を受信する可能性があります。
+
+背中合わせを実装する場合は、次のいずれかが必要です。
+
+- 筐体ごとに異なるメッセージ名を使用する
+- ボタン送信位置をController側で検証し、自分の操作盤からの命令だけ受信する
+- 通信範囲が重ならない距離へ離す
+
+1台だけ配置する場合は追加対応不要です。
+
+## 自動構築／修復
+
+Prefab参照やColliderを修復する場合は、次を実行します。
+
+```text
+Tools > Crane Game > Build or Repair newCrene Game
+```
+
+このメニューは次を自動処理します。
+
+1. newCreneとmagatamaを読み込む
+2. 筐体、床、天井、操作盤、排出口を修復する
+3. 爪と景品のConvex MeshColliderを生成する
+4. 左右Grip Sensorを設定する
+5. Home、Drop、Respawn位置を設定する
+6. newCrene上端を天井内面へ揃える
+7. C#検証用の床Collider参照を保存する
+8. cluster Item階層を修復する
+9. ClusterScript参照を設定する
+10. `CraneGame.prefab` と `Prize.prefab` を保存する
+11. Validatorを実行する
+
+既存の `CraneGameRoot` がある場合は、ルートを全面置換せず現在のPrefab構成を維持して修復します。
+
+## Editorでの確認
+
+clusterへアップロードする前の補助確認として、Editor用C#入力も使用できます。
+
+- WASD／矢印キー：水平移動
+- Space／G：Grab
+- R：Reset
+- 立体ボタン：マウス操作
+
+Editor用処理はcluster固有APIへ依存しません。clusterで実際に動く処理は `Cluster/` 内のJavaScriptです。
+
+## 主な設定値
 
 - PrefabルートScale：`(1, 1, 1)`
-- 想定単位：1 Unity Unit = 約1m
-- 筐体グループ：標準寸法の1.5倍
+- 筐体倍率：`1.5`
 - 移動速度：`1.5 units/sec`
-- 可動域：X `-1.70..1.70`、Z `-0.90..0.90`
+- 可動域X：`-1.70..1.70`
+- 可動域Z：`-0.90..0.90`
 - Home：`(0, 4.467, 0)`
 - Drop：`(1.70, 4.467, -0.90)`
-- C#最大下降距離：`3.65`
-- C#実下降距離：約`2.975`
-- 床クリアランス：約`0.01`
-- cluster最大下降距離：`3.58`
-- cluster GripAnchor最低Y：`0.46`
 - ボタン通信範囲：`10m`
 - 景品質量：`0.34`
-- 把持補助の滑り確率：毎秒`0.04`
+- 滑り確率：毎秒`0.04`
 - 景品寿命：`90秒`
-- 復活遅延：`1.2秒`
-- Y下限：`-1.5`
+- Respawn遅延：`1.2秒`
+- Respawn Y下限：`-1.5`
 
-## 依存関係
+## 関連ファイル
 
-必須：
-
-- Unity標準 `MonoBehaviour`、`Transform`、`Rigidbody`、`Collider`、Coroutine
-
-cluster利用時のみ：
-
-- cluster Creator Kit 3.x
-- `Cluster/` 内のJavaScriptだけがcluster固有APIを使用します。
-- 共通C#はcluster名前空間へ直接依存しません。
-
-別プロジェクトへ移植する場合は、`.meta`を含む`CraneGame`フォルダ全体をコピーしてください。モデル、Material、Collider Mesh、Prefab、ScriptのGUID参照を維持できます。
+```text
+CraneGame/
+├── Cluster/
+│   ├── CraneClusterController.js
+│   ├── CraneClusterPrize.js
+│   └── CraneButton*.js
+├── Editor/
+│   └── CraneGameSetup.cs
+├── Models/
+│   ├── newCrene.fbx
+│   ├── magatama.fbx
+│   └── Colliders/
+├── Prefabs/
+│   ├── CraneGame.prefab
+│   └── Prize.prefab
+└── Scripts/                       Editor検証／移植用の共通C#
+```
