@@ -1416,7 +1416,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ClusterVR.CreatorKit.Item.Implements::ClusterVR.CreatorKit.Item.Implements.Item
   id:
-    value: 0
+    value: 13413666687662579725
   itemName: 
   size: {x: 0, y: 0, z: 0}
 --- !u!114 &8054744307502340464
@@ -1686,91 +1686,12 @@ Transform:
   m_GameObject: {fileID: 3620507627981745091}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.00000011920929, y: -1.0331016, z: 0}
+  m_LocalPosition: {x: -0.00000011920929, y: -1.0331018, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6234113674544649331}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &3815359719804651183
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 5367974361046452912}
-  - component: {fileID: 4201464314952339280}
-  - component: {fileID: 32844352464942327}
-  - component: {fileID: 8629099846810711408}
-  m_Layer: 0
-  m_Name: RightGripSensor
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &5367974361046452912
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3815359719804651183}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2604224891957279961}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &4201464314952339280
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3815359719804651183}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.007133796, y: 0.0035288092, z: 0.0027}
-  m_Center: {x: -0.0060573323, y: 0.00284825, z: 0.0000032966755}
---- !u!114 &32844352464942327
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3815359719804651183}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 05a93e326834e473fa386543bd55ce02, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MCT.CraneGame.ClawContactSensor
---- !u!114 &8629099846810711408
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3815359719804651183}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 343e74bba2af49b3afd901230b4e872e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: ClusterVR.CreatorKit.Item.Implements::ClusterVR.CreatorKit.Item.Implements.OverlapDetectorShape
 --- !u!1 &3981086910015402640
 GameObject:
   m_ObjectHideFlags: 0
@@ -2153,85 +2074,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: ClusterVR.CreatorKit.Item.Implements::ClusterVR.CreatorKit.Item.Implements.ScriptableItem
   sourceCodeAsset: {fileID: 5022602860645237092, guid: 782ec599dcb10408da84398f71b62354, type: 3}
   sourceCode: 
---- !u!1 &4399797505278140284
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 962926363686684481}
-  - component: {fileID: 5253621968083390470}
-  - component: {fileID: 3672594210963110058}
-  - component: {fileID: 617810344792623752}
-  m_Layer: 0
-  m_Name: LeftGripSensor
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &962926363686684481
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4399797505278140284}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 6250204933068544773}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &5253621968083390470
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4399797505278140284}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.007133796, y: 0.0035288092, z: 0.0027}
-  m_Center: {x: -0.006057332, y: 0.00284825, z: -0.0000032954201}
---- !u!114 &3672594210963110058
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4399797505278140284}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 05a93e326834e473fa386543bd55ce02, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MCT.CraneGame.ClawContactSensor
---- !u!114 &617810344792623752
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4399797505278140284}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 343e74bba2af49b3afd901230b4e872e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: ClusterVR.CreatorKit.Item.Implements::ClusterVR.CreatorKit.Item.Implements.OverlapDetectorShape
 --- !u!1 &4403534058848008224
 GameObject:
   m_ObjectHideFlags: 0
@@ -2347,9 +2189,12 @@ MonoBehaviour:
   gripAssist: {fileID: 2633742368897338132}
   homePosition: {fileID: 8272441765325314492}
   dropPosition: {fileID: 2906821105443891499}
+  craneModel: {fileID: 6657459102041567948}
+  playFieldCollider: {fileID: 8733493825613463767}
   lowerDistance: 3.65
   clampLoweringByGripHeight: 1
-  minimumGripHeight: 0.68
+  minimumGripHeight: 0.46
+  floorClearance: 0.01
   lowerSpeed: 0.85
   liftSpeed: 0.9
   horizontalSequenceSpeed: 1.35
@@ -2371,6 +2216,7 @@ MonoBehaviour:
   onCraneStateChanged:
     m_PersistentCalls:
       m_Calls: []
+  liftedLocalPosition: {x: 0, y: 0, z: 0}
 --- !u!114 &583844449762832576
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2640,6 +2486,85 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &4754571214694999357
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3489682303068839554}
+  - component: {fileID: 6453507063395645690}
+  - component: {fileID: 4261657146344832496}
+  - component: {fileID: 5259608884500971428}
+  m_Layer: 0
+  m_Name: LeftGripSensor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3489682303068839554
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4754571214694999357}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6250204933068544773}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &6453507063395645690
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4754571214694999357}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.007133796, y: 0.0035288092, z: 0.0027}
+  m_Center: {x: -0.0060573346, y: 0.00284825, z: -0.0000032954201}
+--- !u!114 &4261657146344832496
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4754571214694999357}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05a93e326834e473fa386543bd55ce02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MCT.CraneGame.ClawContactSensor
+--- !u!114 &5259608884500971428
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4754571214694999357}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 343e74bba2af49b3afd901230b4e872e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ClusterVR.CreatorKit.Item.Implements::ClusterVR.CreatorKit.Item.Implements.OverlapDetectorShape
 --- !u!1 &4763222529514618861
 GameObject:
   m_ObjectHideFlags: 0
@@ -2831,8 +2756,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MCT.CraneGame.PrizeGripAssist
   gripAnchor: {fileID: 5460259599844339753}
-  leftSensor: {fileID: 3672594210963110058}
-  rightSensor: {fileID: 32844352464942327}
+  leftSensor: {fileID: 4261657146344832496}
+  rightSensor: {fileID: 701977118296697254}
   assistEnabled: 1
   maximumFollowDistance: 1.1
   slipChancePerSecond: 0.04
@@ -3749,7 +3674,7 @@ Transform:
   m_GameObject: {fileID: 6461731242091676528}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1.7, y: 5.25, z: -0.9}
+  m_LocalPosition: {x: 1.7, y: 4.467062, z: -0.9}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4030,7 +3955,7 @@ Transform:
   m_GameObject: {fileID: 7016299001336854175}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 5.25, z: 0}
+  m_LocalPosition: {x: 0, y: 4.467062, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4158,7 +4083,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ClusterVR.CreatorKit.Item.Implements::ClusterVR.CreatorKit.Item.Implements.Item
   id:
-    value: 0
+    value: 5400347822928105449
   itemName: 
   size: {x: 0, y: 0, z: 0}
 --- !u!114 &8010440968747276936
@@ -4189,6 +4114,85 @@ MonoBehaviour:
   m_EditorClassIdentifier: ClusterVR.CreatorKit.Item.Implements::ClusterVR.CreatorKit.Item.Implements.MovableItem
   item: {fileID: 8699981622279161973}
   rb: {fileID: 6727197030879755486}
+--- !u!1 &7638988748205481862
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4338963405920196103}
+  - component: {fileID: 7216071027796726579}
+  - component: {fileID: 701977118296697254}
+  - component: {fileID: 680470957308283116}
+  m_Layer: 0
+  m_Name: RightGripSensor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4338963405920196103
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7638988748205481862}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2604224891957279961}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &7216071027796726579
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7638988748205481862}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.007133796, y: 0.0035288092, z: 0.0027}
+  m_Center: {x: -0.006057335, y: 0.00284825, z: 0.0000032966755}
+--- !u!114 &701977118296697254
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7638988748205481862}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05a93e326834e473fa386543bd55ce02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MCT.CraneGame.ClawContactSensor
+--- !u!114 &680470957308283116
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7638988748205481862}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 343e74bba2af49b3afd901230b4e872e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ClusterVR.CreatorKit.Item.Implements::ClusterVR.CreatorKit.Item.Implements.OverlapDetectorShape
 --- !u!1 &7773571278214659975
 GameObject:
   m_ObjectHideFlags: 0
@@ -4477,7 +4481,7 @@ Transform:
   m_GameObject: {fileID: 8413868759523466958}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 5.25, z: 0}
+  m_LocalPosition: {x: 0, y: 4.467062, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4916,7 +4920,7 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ba2e2827ddae541d5ae95a10ef3550e9, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 8442982005524035718}
+      addedObject: {fileID: 7352540451096010576}
   m_SourcePrefab: {fileID: 100100000, guid: ba2e2827ddae541d5ae95a10ef3550e9, type: 3}
 --- !u!4 &1298074850317605452 stripped
 Transform:
@@ -4928,7 +4932,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: ba2e2827ddae541d5ae95a10ef3550e9, type: 3}
   m_PrefabInstance: {fileID: 1551781784057937319}
   m_PrefabAsset: {fileID: 0}
---- !u!64 &8442982005524035718
+--- !u!64 &7352540451096010576
 MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -4998,6 +5002,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1895006254276368675, guid: 7f211f1a46bcf4f36a0a8cb26d8b7e71, type: 3}
+      propertyPath: id.value
+      value: 10914163649929947202
+      objectReference: {fileID: 0}
     - target: {fileID: 2974079103832468357, guid: 7f211f1a46bcf4f36a0a8cb26d8b7e71, type: 3}
       propertyPath: m_Name
       value: Prize_1
@@ -5013,14 +5021,14 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 549804308658637268, guid: 7f211f1a46bcf4f36a0a8cb26d8b7e71, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 6460421999970577178}
+      addedObject: {fileID: 2084152821436408848}
   m_SourcePrefab: {fileID: 100100000, guid: 7f211f1a46bcf4f36a0a8cb26d8b7e71, type: 3}
 --- !u!1 &4716391529725573508 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 549804308658637268, guid: 7f211f1a46bcf4f36a0a8cb26d8b7e71, type: 3}
   m_PrefabInstance: {fileID: 5103335943594045520}
   m_PrefabAsset: {fileID: 0}
---- !u!64 &6460421999970577178
+--- !u!64 &2084152821436408848
 MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -5140,24 +5148,24 @@ PrefabInstance:
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: -8263116858934407646, guid: e7167de5be4384fc3bda314cefd9f9d0, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 962926363686684481}
+      addedObject: {fileID: 3489682303068839554}
     - targetCorrespondingSourceObject: {fileID: 9208350541158705662, guid: e7167de5be4384fc3bda314cefd9f9d0, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 5367974361046452912}
+      addedObject: {fileID: 4338963405920196103}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: -3603532083905298982, guid: e7167de5be4384fc3bda314cefd9f9d0, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 8068994257692758867}
+      addedObject: {fileID: 3373401172247924918}
     - targetCorrespondingSourceObject: {fileID: -6813773642550441099, guid: e7167de5be4384fc3bda314cefd9f9d0, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2712915182057733482}
+      addedObject: {fileID: 1558895441000789306}
   m_SourcePrefab: {fileID: 100100000, guid: e7167de5be4384fc3bda314cefd9f9d0, type: 3}
 --- !u!1 &1590645964933458173 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -3603532083905298982, guid: e7167de5be4384fc3bda314cefd9f9d0, type: 3}
   m_PrefabInstance: {fileID: 6624428616750830887}
   m_PrefabAsset: {fileID: 0}
---- !u!64 &8068994257692758867
+--- !u!64 &3373401172247924918
 MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -5209,7 +5217,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: -6813773642550441099, guid: e7167de5be4384fc3bda314cefd9f9d0, type: 3}
   m_PrefabInstance: {fileID: 6624428616750830887}
   m_PrefabAsset: {fileID: 0}
---- !u!64 &2712915182057733482
+--- !u!64 &1558895441000789306
 MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -5305,7 +5313,7 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ba2e2827ddae541d5ae95a10ef3550e9, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 3299833671802091045}
+      addedObject: {fileID: 5150075490859493956}
   m_SourcePrefab: {fileID: 100100000, guid: ba2e2827ddae541d5ae95a10ef3550e9, type: 3}
 --- !u!4 &8631583882388095539 stripped
 Transform:
@@ -5317,7 +5325,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: ba2e2827ddae541d5ae95a10ef3550e9, type: 3}
   m_PrefabInstance: {fileID: 8089365097518441944}
   m_PrefabAsset: {fileID: 0}
---- !u!64 &3299833671802091045
+--- !u!64 &5150075490859493956
 MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

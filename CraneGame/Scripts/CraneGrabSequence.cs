@@ -26,11 +26,14 @@ namespace MCT.CraneGame
         [SerializeField] PrizeGripAssist gripAssist;
         [SerializeField] Transform homePosition;
         [SerializeField] Transform dropPosition;
+        [SerializeField] Transform craneModel;
+        [SerializeField] Collider playFieldCollider;
 
         [Header("Timing and speed")]
         [SerializeField, Min(0.05f)] float lowerDistance = 3.65f;
         [SerializeField] bool clampLoweringByGripHeight = true;
-        [SerializeField] float minimumGripHeight = 0.68f;
+        [SerializeField] float minimumGripHeight = 0.46f;
+        [SerializeField, Min(0f)] float floorClearance = 0.01f;
         [SerializeField, Min(0.05f)] float lowerSpeed = 0.85f;
         [SerializeField, Min(0.05f)] float liftSpeed = 0.9f;
         [SerializeField, Min(0.05f)] float horizontalSequenceSpeed = 1.35f;
@@ -45,20 +48,12 @@ namespace MCT.CraneGame
         [SerializeField] UnityEvent onReturnedHome;
         [SerializeField] UnityEvent onCraneStateChanged;
 
-        Vector3 liftedLocalPosition;
+        [SerializeField, HideInInspector] Vector3 liftedLocalPosition = Vector3.zero;
         Coroutine routine;
         CraneState state = CraneState.Idle;
 
         public CraneState State => state;
         public bool IsBusy => routine != null || state != CraneState.Idle;
-
-        void Awake()
-        {
-            if (liftAssembly != null)
-            {
-                liftedLocalPosition = liftAssembly.localPosition;
-            }
-        }
 
         public bool Begin()
         {
@@ -153,10 +148,10 @@ namespace MCT.CraneGame
             }
             if (carriage != null && homePosition != null)
             {
-                Vector3 position = carriage.position;
-                position.x = homePosition.position.x;
-                position.z = homePosition.position.z;
-                carriage.position = position;
+                // Reset is a full pose recovery. Preserving the current Y kept a
+                // legacy/physics-shifted carriage height and made the next lowering
+                // pass through the playfield.
+                carriage.position = homePosition.position;
             }
             SetState(CraneState.Idle);
             if (controller != null)
@@ -178,7 +173,25 @@ namespace MCT.CraneGame
         Vector3 CalculateLoweredLocalPosition()
         {
             float distance = lowerDistance;
-            if (clampLoweringByGripHeight && gripAssist != null && gripAssist.GripAnchor != null && controller != null)
+            Physics.SyncTransforms();
+            if (craneModel != null && playFieldCollider != null)
+            {
+                Renderer[] renderers = craneModel.GetComponentsInChildren<Renderer>(true);
+                float lowestWorldY = float.PositiveInfinity;
+                for (int i = 0; i < renderers.Length; i++)
+                {
+                    if (renderers[i].enabled)
+                    {
+                        lowestWorldY = Mathf.Min(lowestWorldY, renderers[i].bounds.min.y);
+                    }
+                }
+                if (!float.IsInfinity(lowestWorldY))
+                {
+                    float available = lowestWorldY - playFieldCollider.bounds.max.y - floorClearance;
+                    distance = Mathf.Min(distance, Mathf.Max(0f, available));
+                }
+            }
+            else if (clampLoweringByGripHeight && gripAssist != null && gripAssist.GripAnchor != null && controller != null)
             {
                 Transform space = controller.MovementSpace;
                 float gripHeight = space.InverseTransformPoint(gripAssist.GripAnchor.position).y;
@@ -221,6 +234,12 @@ namespace MCT.CraneGame
             homePosition = home;
             dropPosition = drop;
             liftedLocalPosition = newLiftAssembly != null ? newLiftAssembly.localPosition : Vector3.zero;
+        }
+
+        public void ConfigureFloorContact(Transform model, Collider floorCollider)
+        {
+            craneModel = model;
+            playFieldCollider = floorCollider;
         }
     }
 }

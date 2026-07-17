@@ -21,8 +21,14 @@ const TRAVEL_SPEED = 1.25;
 const CLAW_DURATION = 0.65;
 const CONTACT_SETTLE_DURATION = 0.15;
 const RELEASE_WAIT = 0.45;
+const HOME_X = 0;
+// newCrene renderer top aligned to the enlarged cabinet ceiling underside.
+const HOME_Y = 4.4671;
+const HOME_Z = 0;
 const DROP_X = 1.7;
 const DROP_Z = -0.9;
+// At this height the actual claw renderer bottom is about 1 cm above PlayField.
+const MINIMUM_GRIP_HEIGHT = 0.46;
 
 function copyVector(value) {
   return new Vector3(value.x, value.y, value.z);
@@ -33,6 +39,22 @@ function moveTowards(current, target, maxDelta) {
   const distance = difference.length();
   if (distance <= maxDelta || distance <= 0.0001) return target.clone();
   return current.clone().add(difference.multiplyScalar(maxDelta / distance));
+}
+
+function authoredHomePosition() {
+  return new Vector3(HOME_X, HOME_Y, HOME_Z);
+}
+
+function calculateSafeLowerDistance() {
+  const gripGlobalY = $.subNode(GRIP_ANCHOR).getGlobalPosition().y;
+  const minimumGlobalY = $.getPosition().y + MINIMUM_GRIP_HEIGHT;
+  return Math.min(LOWER_DISTANCE, Math.max(0, gripGlobalY - minimumGlobalY));
+}
+
+function activeLowerDistance() {
+  return typeof $.state.activeLowerDistance === "number"
+    ? $.state.activeLowerDistance
+    : LOWER_DISTANCE;
 }
 
 function setClawAmount(amount) {
@@ -51,13 +73,18 @@ $.onStart(() => {
   const lift = $.subNode(LIFT);
   const left = $.subNode(LEFT_CLAW);
   const right = $.subNode(RIGHT_CLAW);
-  $.state.home = copyVector(carriage.getPosition());
-  $.state.lifted = copyVector(lift.getPosition());
+  // Do not inherit a stale scene/runtime height. Reset and initial placement use
+  // the authored home pose that matches the enlarged cabinet.
+  $.state.home = authoredHomePosition();
+  $.state.lifted = new Vector3(0, 0, 0);
+  carriage.setPosition(copyVector($.state.home));
+  lift.setPosition(copyVector($.state.lifted));
   $.state.leftOpenRotation = left.getRotation().clone();
   $.state.rightOpenRotation = right.getRotation().clone();
   $.state.phase = "idle";
   $.state.clawTimer = 0;
   $.state.releaseTimer = 0;
+  $.state.activeLowerDistance = LOWER_DISTANCE;
   $.state.moveCommand = null;
   // The prefab already contains the authored open pose. Reapplying an item-local
   // rotation here can disturb the FBX hierarchy while its non-uniform scale settles.
@@ -100,11 +127,14 @@ function updateManualMove(deltaTime) {
 }
 
 function resetCrane() {
+  $.state.home = authoredHomePosition();
+  $.state.lifted = new Vector3(0, 0, 0);
   $.subNode(CARRIAGE).setPosition(copyVector($.state.home));
   $.subNode(LIFT).setPosition(copyVector($.state.lifted));
   setClawAmount(0);
   $.state.clawTimer = 0;
   $.state.releaseTimer = 0;
+  $.state.activeLowerDistance = LOWER_DISTANCE;
   $.state.moveCommand = null;
   $.state.phase = "idle";
   $.log("crane reset to home");
@@ -114,7 +144,8 @@ function requestPrizeCarry() {
   const grip = $.subNode(GRIP_ANCHOR).getGlobalPosition();
   const carriagePosition = $.subNode(CARRIAGE).getPosition();
   const rootRotation = $.getRotation();
-  const liftOffset = new Vector3(0, LOWER_DISTANCE, 0).applyQuaternion(rootRotation);
+  const lowerDistance = activeLowerDistance();
+  const liftOffset = new Vector3(0, lowerDistance, 0).applyQuaternion(rootRotation);
   const dropOffset = new Vector3(
     DROP_X - carriagePosition.x,
     0,
@@ -141,7 +172,7 @@ function requestPrizeCarry() {
         capture: grip,
         lifted: lifted,
         drop: drop,
-        liftDuration: LOWER_DISTANCE / LIFT_SPEED,
+        liftDuration: lowerDistance / LIFT_SPEED,
         travelDuration: travelDuration,
         releaseDelay: CLAW_DURATION,
       });
@@ -174,6 +205,8 @@ $.onReceive((messageType, command) => {
   if (command === "grab") {
     if ($.state.phase === "idle") {
       $.state.moveCommand = null;
+      $.state.activeLowerDistance = calculateSafeLowerDistance();
+      $.log("crane safe lowering distance: " + $.state.activeLowerDistance);
       $.state.phase = "lowering";
     }
     return;
@@ -192,7 +225,8 @@ $.onUpdate(deltaTime => {
   const lift = $.subNode(LIFT);
 
   if (phase === "lowering") {
-    const target = copyVector($.state.lifted).add(new Vector3(0, -LOWER_DISTANCE, 0));
+    const lowerDistance = activeLowerDistance();
+    const target = copyVector($.state.lifted).add(new Vector3(0, -lowerDistance, 0));
     const next = moveTowards(copyVector(lift.getPosition()), target, LOWER_SPEED * deltaTime);
     lift.setPosition(next);
     if (next.clone().sub(target).length() < 0.001) {

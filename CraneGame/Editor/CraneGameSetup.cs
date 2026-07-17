@@ -20,7 +20,7 @@ namespace MCT.CraneGame.Editor
         const string PrizeModelSourcePath = "Assets/magatama.fbx";
         const string PrizeModelPath = BasePath + "/Models/magatama.fbx";
         const float CabinetScale = 1.5f;
-        const float ScaledCarriageHeight = 5.25f;
+        const float FallbackCarriageHeight = 5.25f;
         static readonly Vector2 SafeXLimits = new Vector2(-1.7f, 1.7f);
         // The opened original FBX claws extend about 1.25 units from the carriage
         // along Z. Keep their outer edge inside the cabinet's 1.50-unit inner face.
@@ -121,8 +121,10 @@ namespace MCT.CraneGame.Editor
             KeyboardCraneInputAdapter keyboard = root.AddComponent<KeyboardCraneInputAdapter>();
 
             sequence.Configure(controller, carriage, liftAssembly, claw, gripAssist, home, drop);
+            sequence.ConfigureFloorContact(sourceModel.transform,
+                FindDeepChild(root.transform, "PlayField").GetComponent<Collider>());
             SetSerializedFloat(sequence, "lowerDistance", 3.65f);
-            SetSerializedFloat(sequence, "minimumGripHeight", 0.68f);
+            SetSerializedFloat(sequence, "minimumGripHeight", 0.46f);
             controller.Configure(carriage, movementSpace, sequence, respawner);
             controller.SetLimits(SafeXLimits, SafeZLimits);
             keyboard.Configure(controller);
@@ -204,6 +206,7 @@ namespace MCT.CraneGame.Editor
                 }
                 ValidateNoNestedClusterItems(root, errors);
                 ValidateCraneClearance(root, errors);
+                ValidateVerticalPlacement(root, errors);
             }
 
             if (errors.Count == 0)
@@ -229,7 +232,13 @@ namespace MCT.CraneGame.Editor
             Transform left = FindDeepChild(root.transform, "claw_armL");
             Transform right = FindDeepChild(root.transform, "claw_armL.001");
             Transform anchor = FindDeepChild(root.transform, "GripAnchor");
+            Transform model = FindDeepChild(root.transform, ModelObjectName);
+            Transform playField = FindDeepChild(root.transform, "PlayField");
+            Transform top = FindDeepChild(root.transform, "Top");
             List<string> lines = new List<string>();
+            AppendTransformDiagnostics(lines, "MODEL", model, root.transform);
+            AppendTransformDiagnostics(lines, "PLAYFIELD", playField, root.transform);
+            AppendTransformDiagnostics(lines, "CEILING", top, root.transform);
             AppendTransformDiagnostics(lines, "LEFT", left, root.transform);
             AppendTransformDiagnostics(lines, "RIGHT", right, root.transform);
             AppendTransformDiagnostics(lines, "GRIP", anchor, root.transform);
@@ -682,6 +691,14 @@ namespace MCT.CraneGame.Editor
             {
                 clawController.Configure(FindDeepChild(model, "claw_armL"),
                     FindDeepChild(model, "claw_armL.001"), Vector3.right);
+            }
+
+            CraneGrabSequence sequence = root.GetComponent<CraneGrabSequence>();
+            Transform playField = FindDeepChild(root.transform, "PlayField");
+            if (sequence != null)
+            {
+                sequence.ConfigureFloorContact(model,
+                    playField != null ? playField.GetComponent<Collider>() : null);
             }
 
             foreach (TextMesh text in root.GetComponentsInChildren<TextMesh>(true))
@@ -1238,7 +1255,12 @@ namespace MCT.CraneGame.Editor
             if (sequence != null)
             {
                 SetSerializedFloat(sequence, "lowerDistance", 3.65f);
-                SetSerializedFloat(sequence, "minimumGripHeight", 0.68f);
+                SetSerializedFloat(sequence, "minimumGripHeight", 0.46f);
+                SetSerializedFloat(sequence, "floorClearance", 0.01f);
+                Transform modelForFloor = FindDeepChild(root.transform, ModelObjectName);
+                Transform playField = FindDeepChild(root.transform, "PlayField");
+                sequence.ConfigureFloorContact(modelForFloor,
+                    playField != null ? playField.GetComponent<Collider>() : null);
             }
 
             Transform drop = FindDeepChild(root.transform, "DropPosition");
@@ -1366,6 +1388,37 @@ namespace MCT.CraneGame.Editor
             }
         }
 
+        static void ValidateVerticalPlacement(GameObject root, List<string> errors)
+        {
+            Transform model = FindDeepChild(root.transform, ModelObjectName);
+            Transform ceiling = FindDeepChild(root.transform, "Top");
+            Transform playField = FindDeepChild(root.transform, "PlayField");
+            Renderer ceilingRenderer = ceiling != null ? ceiling.GetComponent<Renderer>() : null;
+            Collider floorCollider = playField != null ? playField.GetComponent<Collider>() : null;
+            if (model == null || ceilingRenderer == null || floorCollider == null)
+            {
+                errors.Add("天井・床到達検証に必要なModel、Top、PlayFieldのいずれかがありません。");
+                return;
+            }
+
+            Bounds modelBounds = CalculateRendererBounds(model.gameObject);
+            float ceilingGap = ceilingRenderer.bounds.min.y - modelBounds.max.y;
+            float requiredLowerDistance = modelBounds.min.y - floorCollider.bounds.max.y - 0.01f;
+            if (Mathf.Abs(ceilingGap) > 0.02f)
+            {
+                errors.Add(string.Format("クレーン上端が天井内面と一致しません: gap={0:F3}", ceilingGap));
+            }
+            if (requiredLowerDistance < 0f || requiredLowerDistance > 3.65f)
+            {
+                errors.Add(string.Format("爪先を床へ合わせる下降量が範囲外です: distance={0:F3}", requiredLowerDistance));
+            }
+            if (Mathf.Abs(ceilingGap) <= 0.02f && requiredLowerDistance >= 0f && requiredLowerDistance <= 3.65f)
+            {
+                Debug.Log(string.Format("Crane vertical placement PASS: ceilingGap={0:F3}, floorTravel={1:F3}",
+                    ceilingGap, requiredLowerDistance), root);
+            }
+        }
+
         static void ApplyCabinetClearanceSettings(GameObject root)
         {
             Transform cabinet = FindDeepChild(root.transform, "Cabinet");
@@ -1447,9 +1500,34 @@ namespace MCT.CraneGame.Editor
                 }
             }
 
-            SetLocalY(FindDeepChild(root.transform, "Carriage"), ScaledCarriageHeight);
-            SetLocalY(FindDeepChild(root.transform, "HomePosition"), ScaledCarriageHeight);
-            SetLocalY(FindDeepChild(root.transform, "DropPosition"), ScaledCarriageHeight);
+            SetLocalY(FindDeepChild(root.transform, "Carriage"), FallbackCarriageHeight);
+            SetLocalY(FindDeepChild(root.transform, "HomePosition"), FallbackCarriageHeight);
+            SetLocalY(FindDeepChild(root.transform, "DropPosition"), FallbackCarriageHeight);
+            AlignCraneToCeiling(root);
+        }
+
+        static void AlignCraneToCeiling(GameObject root)
+        {
+            Transform carriage = FindDeepChild(root.transform, "Carriage");
+            Transform model = FindDeepChild(root.transform, ModelObjectName);
+            Transform ceiling = FindDeepChild(root.transform, "Top");
+            if (carriage == null || model == null || ceiling == null)
+            {
+                return;
+            }
+
+            Renderer ceilingRenderer = ceiling.GetComponent<Renderer>();
+            if (ceilingRenderer == null)
+            {
+                return;
+            }
+            Bounds modelBounds = CalculateRendererBounds(model.gameObject);
+            float deltaY = ceilingRenderer.bounds.min.y - modelBounds.max.y;
+            Vector3 carriageLocal = carriage.localPosition;
+            carriageLocal.y += deltaY;
+            carriage.localPosition = carriageLocal;
+            SetLocalY(FindDeepChild(root.transform, "HomePosition"), carriageLocal.y);
+            SetLocalY(FindDeepChild(root.transform, "DropPosition"), carriageLocal.y);
         }
 
         static void SetLocalY(Transform target, float y)

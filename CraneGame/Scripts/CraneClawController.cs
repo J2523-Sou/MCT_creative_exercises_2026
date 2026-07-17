@@ -19,6 +19,8 @@ namespace MCT.CraneGame
         bool initialized;
 
         public float ClosedAmount => closedAmount;
+        public Transform LeftClaw => leftClaw;
+        public Transform RightClaw => rightClaw;
 
         void Awake()
         {
