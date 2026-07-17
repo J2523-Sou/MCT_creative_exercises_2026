@@ -10,8 +10,8 @@ namespace MCT.CraneGame
         [SerializeField] Transform movementRoot;
         [SerializeField] Transform movementSpace;
         [SerializeField, Min(0.01f)] float moveSpeed = 1.5f;
-        [SerializeField] Vector2 xLimits = new Vector2(-0.95f, 0.95f);
-        [SerializeField] Vector2 zLimits = new Vector2(-0.4f, 0.4f);
+        [SerializeField] Vector2 xLimits = new Vector2(-1.7f, 1.7f);
+        [SerializeField] Vector2 zLimits = new Vector2(-0.9f, 0.9f);
 
         [Header("Sequence")]
         [SerializeField] CraneGrabSequence grabSequence;

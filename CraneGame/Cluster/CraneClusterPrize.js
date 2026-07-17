@@ -5,7 +5,7 @@ const MINIMUM_Y = -1.5;
 const MAXIMUM_LIFETIME = 90;
 const RESPAWN_DELAY = 1.2;
 const SLIP_CHANCE_PER_SECOND = 0.04;
-const MAXIMUM_HORIZONTAL_DISTANCE = 2.8;
+const MAXIMUM_HORIZONTAL_DISTANCE = 4.2;
 
 function copyVector(value) {
   return new Vector3(value.x, value.y, value.z);

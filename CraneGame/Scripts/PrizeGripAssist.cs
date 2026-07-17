@@ -21,6 +21,7 @@ namespace MCT.CraneGame
         FixedJoint heldJoint;
 
         public Prize HeldPrize => heldPrize;
+        public Transform GripAnchor => gripAnchor;
 
         public bool TryAttach()
         {

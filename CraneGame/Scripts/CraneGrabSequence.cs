@@ -28,7 +28,9 @@ namespace MCT.CraneGame
         [SerializeField] Transform dropPosition;
 
         [Header("Timing and speed")]
-        [SerializeField, Min(0.05f)] float lowerDistance = 1.15f;
+        [SerializeField, Min(0.05f)] float lowerDistance = 3.65f;
+        [SerializeField] bool clampLoweringByGripHeight = true;
+        [SerializeField] float minimumGripHeight = 0.68f;
         [SerializeField, Min(0.05f)] float lowerSpeed = 0.85f;
         [SerializeField, Min(0.05f)] float liftSpeed = 0.9f;
         [SerializeField, Min(0.05f)] float horizontalSequenceSpeed = 1.35f;
@@ -78,7 +80,7 @@ namespace MCT.CraneGame
             {
                 yield return new WaitForSeconds(settleBeforeClose);
             }
-            Vector3 lowered = liftedLocalPosition + Vector3.down * lowerDistance;
+            Vector3 lowered = CalculateLoweredLocalPosition();
             yield return MoveLocal(liftAssembly, lowered, lowerSpeed);
 
             SetState(CraneState.Closing);
@@ -171,6 +173,19 @@ namespace MCT.CraneGame
                 yield return null;
             }
             target.localPosition = destination;
+        }
+
+        Vector3 CalculateLoweredLocalPosition()
+        {
+            float distance = lowerDistance;
+            if (clampLoweringByGripHeight && gripAssist != null && gripAssist.GripAnchor != null && controller != null)
+            {
+                Transform space = controller.MovementSpace;
+                float gripHeight = space.InverseTransformPoint(gripAssist.GripAnchor.position).y;
+                distance = Mathf.Min(distance, Mathf.Max(0f, gripHeight - minimumGripHeight));
+            }
+            Debug.Log("Crane lowering distance: " + distance.ToString("F3"), this);
+            return liftedLocalPosition + Vector3.down * distance;
         }
 
         IEnumerator MoveHorizontal(Transform target, Vector3 destination, float speed)

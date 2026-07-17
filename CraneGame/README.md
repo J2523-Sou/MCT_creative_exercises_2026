@@ -1,6 +1,6 @@
 # Crane Game
 
-`クレーン2.fbx` のモデルPrefabを筐体内の可動台へ組み込むクレーンゲームです。
+`newCrene.fbx` のモデルPrefabを筐体内の可動台へ組み込み、`magatama.fbx` を景品にしたクレーンゲームです。
 
 ## 必須依存
 
@@ -25,12 +25,15 @@
 
 基本構成は `Prefabs/CraneGame.prefab` に保存されています。シーンへPrefabを配置し、
 PrefabルートのScaleを `(1, 1, 1)` にしてください。構成を作り直す場合は、Unity Editorの
-`Tools > Crane Game > Build or Repair Crane2 Game` を実行します。このメニューは次をまとめて行います。
+`Tools > Crane Game > Build or Repair newCrene Game` を実行します。このメニューは次をまとめて行います。
 
-- `クレーン2.fbx` を可動台へ配置
+筐体、操作盤、排出口、案内表示は標準寸法の `1.5倍` です。Prefabルートは移植性のため
+`(1, 1, 1)` のまま維持し、筐体グループと関連Collider、可動域、配置Markerを個別に調整しています。
+
+- 横方向の突起を備えた `newCrene.fbx` を可動台へ配置
 - 筐体、床、排出口、操作ボタン、案内表示、照明を生成
-- 爪のColliderと左右の接触センサーを設定
-- 景品、Rigidbody、Collider、復活地点を生成
+- 爪の突起を含む簡略化Convex MeshColliderと左右の接触センサーを設定
+- `magatama.fbx` 景品、Rigidbody、簡略化Convex MeshCollider、復活地点を生成
 - 共通C#コンポーネントとcluster用Scriptable Itemを接続
 - `CraneGame.prefab` と `Prize.prefab` を保存
 
@@ -77,7 +80,8 @@ Prefabを手動で組み直す場合は、最低限次を割り当てます。
 
 ### 4. 景品を追加・差し替えする
 
-`Prize.prefab` を複製するか、任意のGameObjectへ `Prize`、Collider、Rigidbodyを追加します。
+`Prize.prefab` を複製するか、任意のGameObjectへ `Prize`、Collider、Rigidbodyを追加します。標準景品は
+`MagatamaVisual` 子ObjectへConvex MeshColliderを設定しており、動的Rigidbodyで利用できます。
 Rigidbodyは非Kinematicにし、極端に大きい質量や反発を避けてください。`Prize.respawner` を割り当て、
 景品数と同数以上のRespawnPositionを用意すると重なりを避けやすくなります。形状変更後は、爪先端の
 Colliderと景品が初期状態で重ならず、閉じたときだけ左右センサーへ接触することを確認してください。
@@ -92,7 +96,7 @@ cluster固有処理は `Cluster/` 内のJavaScriptだけにあります。
 4. クレーンItem、ボタンItem、景品Itemを兄弟階層に置き、Itemの子へ別Itemを入れないでください。
 5. 爪先の `LeftGripSensor` と `RightGripSensor` にはOverlap Detector Shapeを設定します。
 
-ボタンは半径3m以内へ `mct-crane-command` を送り、クレーンItemが状態遷移を一元管理します。
+ボタンは拡大後の筐体全体を覆う半径10m以内へ `mct-crane-command` を送り、クレーンItemが状態遷移を一元管理します。
 把持時は左右両センサーが同じItemを検出した場合だけ `mct-crane-prize-route` を景品へ送り、景品側Adapterが
 上昇・排出口移動に追従します。共通C#はcluster名前空間を参照しないため、Creator KitがないUnity環境でもコンパイルできます。
 
@@ -120,10 +124,12 @@ Play Modeで次を順に確認します。
 
 ## 初期調整値
 
-- 共通C#: 手動可動域 X `-0.95..0.95`、Z `-0.40..0.40`
-- cluster Adapter: 手動可動域 X `-0.95..0.95`、Z `-0.22..0.22`
-- cluster Adapter: Drop位置 `(0.95, -0.22)`、ボタン命令範囲 `3m`
-- 下降距離: 共通C# `1.15`、cluster Adapter `1.72`
+- 共通C#: 手動可動域 X `-1.70..1.70`、Z `-0.90..0.90`
+- cluster Adapter: 手動可動域 X `-1.70..1.70`、Z `-0.90..0.90`
+- Drop位置 `(1.70, -0.90)`、ボタン命令範囲 `10m`
+- 待機位置Y: `5.25`
+- 下降距離: 共通C# `3.65` / cluster Adapter `3.58`
+- 景品のローカル復活監視範囲: 中心 `(0, 1.8, 0)`、サイズ `(5.7, 5.65, 4.2)`
 - 把持補助の滑り確率: 毎秒 `0.04`
 - 景品寿命: `90秒`、復活遅延: `1.2秒`、Y下限: `-1.5`
 

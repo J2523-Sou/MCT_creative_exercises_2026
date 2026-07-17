@@ -3,7 +3,7 @@ using UnityEngine;
 namespace MCT.CraneGame
 {
     [DisallowMultipleComponent]
-    [RequireComponent(typeof(Rigidbody), typeof(Collider))]
+    [RequireComponent(typeof(Rigidbody))]
     public sealed class Prize : MonoBehaviour
     {
         [SerializeField] PrizeRespawner respawner;

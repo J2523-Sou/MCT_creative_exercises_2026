@@ -9,20 +9,20 @@ const RIGHT_SENSOR = "RightGripSensor";
 const GRIP_ANCHOR = "GripAnchor";
 const MESSAGE_PRIZE_ROUTE = "mct-crane-prize-route";
 
-const MOVE_STEP = 0.28;
-const MIN_X = -0.95;
-const MAX_X = 0.95;
-const MIN_Z = -0.22;
-const MAX_Z = 0.22;
-const LOWER_DISTANCE = 1.72;
+const MOVE_SPEED = 1.5;
+const MIN_X = -1.7;
+const MAX_X = 1.7;
+const MIN_Z = -0.9;
+const MAX_Z = 0.9;
+const LOWER_DISTANCE = 3.58;
 const LOWER_SPEED = 0.8;
 const LIFT_SPEED = 0.9;
 const TRAVEL_SPEED = 1.25;
 const CLAW_DURATION = 0.65;
 const CONTACT_SETTLE_DURATION = 0.15;
 const RELEASE_WAIT = 0.45;
-const DROP_X = 0.95;
-const DROP_Z = -0.22;
+const DROP_X = 1.7;
+const DROP_Z = -0.9;
 
 function copyVector(value) {
   return new Vector3(value.x, value.y, value.z);
@@ -58,22 +58,45 @@ $.onStart(() => {
   $.state.phase = "idle";
   $.state.clawTimer = 0;
   $.state.releaseTimer = 0;
+  $.state.moveCommand = null;
   // The prefab already contains the authored open pose. Reapplying an item-local
   // rotation here can disturb the FBX hierarchy while its non-uniform scale settles.
   $.log("CraneClusterController ready");
 });
 
-function requestMove(command) {
+function setMoveCommand(command, isDown) {
   if ($.state.phase !== "idle") return;
+  if (!isDown) {
+    if ($.state.moveCommand === command) $.state.moveCommand = null;
+    return;
+  }
+  $.state.moveCommand = command;
+}
+
+function toggleMoveCommand(command) {
+  if ($.state.phase !== "idle") return;
+  $.state.moveCommand = $.state.moveCommand === command ? null : command;
+}
+
+function updateManualMove(deltaTime) {
+  const command = $.state.moveCommand;
+  if (command === null || command === undefined) return;
   const carriage = $.subNode(CARRIAGE);
   const position = copyVector(carriage.getPosition());
-  if (command === "left") position.x -= MOVE_STEP;
-  if (command === "right") position.x += MOVE_STEP;
-  if (command === "forward") position.z += MOVE_STEP;
-  if (command === "back") position.z -= MOVE_STEP;
+  if (command === "left") position.x -= MOVE_SPEED * deltaTime;
+  if (command === "right") position.x += MOVE_SPEED * deltaTime;
+  if (command === "forward") position.z += MOVE_SPEED * deltaTime;
+  if (command === "back") position.z -= MOVE_SPEED * deltaTime;
+  const beforeClampX = position.x;
+  const beforeClampZ = position.z;
   position.x = Math.max(MIN_X, Math.min(MAX_X, position.x));
   position.z = Math.max(MIN_Z, Math.min(MAX_Z, position.z));
   carriage.setPosition(position);
+  // Stop an outward command at a boundary. The next press, including the
+  // opposite direction, always starts from a neutral state.
+  if (position.x !== beforeClampX || position.z !== beforeClampZ) {
+    $.state.moveCommand = null;
+  }
 }
 
 function resetCrane() {
@@ -82,6 +105,7 @@ function resetCrane() {
   setClawAmount(0);
   $.state.clawTimer = 0;
   $.state.releaseTimer = 0;
+  $.state.moveCommand = null;
   $.state.phase = "idle";
   $.log("crane reset to home");
 }
@@ -130,21 +154,39 @@ function requestPrizeCarry() {
 }
 
 $.onReceive((messageType, command) => {
-  if (messageType !== MESSAGE_COMMAND || typeof command !== "string") return;
+  if (messageType !== MESSAGE_COMMAND) return;
+  $.log("crane command received: " + command);
+  if (command !== null && typeof command === "object") {
+    if (typeof command.command === "string" && typeof command.isDown === "boolean") {
+      setMoveCommand(command.command, command.isDown);
+    }
+    return;
+  }
+  if (typeof command !== "string") return;
+  if (command === "stop") {
+    $.state.moveCommand = null;
+    return;
+  }
   if (command === "reset") {
     resetCrane();
     return;
   }
   if (command === "grab") {
-    if ($.state.phase === "idle") $.state.phase = "lowering";
+    if ($.state.phase === "idle") {
+      $.state.moveCommand = null;
+      $.state.phase = "lowering";
+    }
     return;
   }
-  requestMove(command);
+  toggleMoveCommand(command);
 });
 
 $.onUpdate(deltaTime => {
   const phase = $.state.phase;
-  if (phase === "idle") return;
+  if (phase === "idle") {
+    updateManualMove(deltaTime);
+    return;
+  }
 
   const carriage = $.subNode(CARRIAGE);
   const lift = $.subNode(LIFT);

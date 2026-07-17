@@ -14,20 +14,26 @@ namespace MCT.CraneGame.Editor
     {
         const string RootName = "CraneGameRoot";
         const string BasePath = "Assets/MCT_creative_exercises_2026/CraneGame";
-        const string ModelPath = "Assets/MCT_creative_exercises_2026/クレーン2.fbx";
-        static readonly Vector2 SafeXLimits = new Vector2(-0.95f, 0.95f);
+        const string CraneModelSourcePath = "Assets/newCrene.fbx";
+        const string ModelPath = BasePath + "/Models/newCrene.fbx";
+        const string ModelObjectName = "newCrene";
+        const string PrizeModelSourcePath = "Assets/magatama.fbx";
+        const string PrizeModelPath = BasePath + "/Models/magatama.fbx";
+        const float CabinetScale = 1.5f;
+        const float ScaledCarriageHeight = 5.25f;
+        static readonly Vector2 SafeXLimits = new Vector2(-1.7f, 1.7f);
         // The opened original FBX claws extend about 1.25 units from the carriage
         // along Z. Keep their outer edge inside the cabinet's 1.50-unit inner face.
-        static readonly Vector2 SafeZLimits = new Vector2(-0.22f, 0.22f);
-        static readonly Vector2 SafeDropXZ = new Vector2(0.95f, -0.22f);
+        static readonly Vector2 SafeZLimits = new Vector2(-0.9f, 0.9f);
+        static readonly Vector2 SafeDropXZ = new Vector2(1.7f, -0.9f);
         static readonly Vector3[] SafeRespawnLocals =
         {
-            new Vector3(-0.72f, 0.52f, 0.25f),
-            new Vector3(0f, 0.52f, 0.42f),
-            new Vector3(0.65f, 0.52f, 0.65f)
+            new Vector3(-1.08f, 0.60f, 0.375f),
+            new Vector3(0f, 0.60f, 0.63f),
+            new Vector3(0.975f, 0.60f, 0.975f)
         };
 
-        [MenuItem("Tools/Crane Game/Build or Repair Crane2 Game %&b")]
+        [MenuItem("Tools/Crane Game/Build or Repair newCrene Game %&b")]
         public static void BuildOrRepair()
         {
             GameObject existing = GameObject.Find(RootName);
@@ -41,6 +47,8 @@ namespace MCT.CraneGame.Editor
             }
 
             EnsureFolders();
+            EnsureCraneModelAsset();
+            EnsurePrizeModelAsset();
             Material frameMaterial = GetOrCreateMaterial("FrameBlue", new Color(0.055f, 0.24f, 0.48f), 0.45f);
             Material panelMaterial = GetOrCreateMaterial("PanelWhite", new Color(0.88f, 0.93f, 0.98f), 0.2f);
             Material playfieldMaterial = GetOrCreateMaterial("Playfield", new Color(0.15f, 0.3f, 0.38f), 0.15f);
@@ -52,7 +60,7 @@ namespace MCT.CraneGame.Editor
             GameObject sourceModel = FindOrCreateModelInstance();
             if (sourceModel == null)
             {
-                Debug.LogError("CraneGameSetup: クレーン2 Prefabを読み込めませんでした。" + ModelPath);
+                Debug.LogError("CraneGameSetup: newCrene Prefabを読み込めませんでした。" + ModelPath);
                 return;
             }
 
@@ -77,7 +85,7 @@ namespace MCT.CraneGame.Editor
             Transform liftAssembly = NewObject("LiftAssembly", carriage).transform;
             liftAssembly.localPosition = Vector3.zero;
 
-            Undo.SetTransformParent(sourceModel.transform, liftAssembly, "Attach Crane2 model");
+            Undo.SetTransformParent(sourceModel.transform, liftAssembly, "Attach newCrene model");
             sourceModel.transform.SetSiblingIndex(0);
 
             Rigidbody liftBody = liftAssembly.gameObject.AddComponent<Rigidbody>();
@@ -113,7 +121,8 @@ namespace MCT.CraneGame.Editor
             KeyboardCraneInputAdapter keyboard = root.AddComponent<KeyboardCraneInputAdapter>();
 
             sequence.Configure(controller, carriage, liftAssembly, claw, gripAssist, home, drop);
-            SetSerializedFloat(sequence, "lowerDistance", 1.55f);
+            SetSerializedFloat(sequence, "lowerDistance", 3.65f);
+            SetSerializedFloat(sequence, "minimumGripHeight", 0.68f);
             controller.Configure(carriage, movementSpace, sequence, respawner);
             controller.SetLimits(SafeXLimits, SafeZLimits);
             keyboard.Configure(controller);
@@ -135,6 +144,7 @@ namespace MCT.CraneGame.Editor
             CreateDropZone(root.transform, chuteMaterial);
             CreateControls(root.transform, controller, darkMaterial, chuteMaterial, frameMaterial);
             CreateLightingAndSigns(root.transform, sequence, panelMaterial);
+            ApplyGameplaySafetySettings(root);
 
             // CraneGameRoot must stay a plain GameObject. cluster rejects an Item that
             // contains the button/prize Items, so only the crane mechanism is an Item.
@@ -147,7 +157,7 @@ namespace MCT.CraneGame.Editor
             Selection.activeGameObject = root;
             SceneView.lastActiveSceneView?.FrameSelected();
 
-            Debug.Log("CraneGameSetup: クレーン2を使用したクレーンゲームを構築しました。", root);
+            Debug.Log("CraneGameSetup: newCreneを使用したクレーンゲームを構築しました。", root);
             ValidateScene();
         }
 
@@ -167,7 +177,7 @@ namespace MCT.CraneGame.Editor
                 RequireComponent<PrizeRespawner>(root, errors);
                 RequireComponent<KeyboardCraneInputAdapter>(root, errors);
                 if (root.transform.localScale != Vector3.one) errors.Add("CraneGameRoot のScaleが (1,1,1) ではありません。");
-                if (FindDeepChild(root.transform, "クレーン2") == null) errors.Add("クレーン2 Prefabインスタンスが見つかりません。");
+                if (FindDeepChild(root.transform, ModelObjectName) == null) errors.Add("newCrene Prefabインスタンスが見つかりません。");
                 if (FindDeepChild(root.transform, "HomePosition") == null) errors.Add("HomePosition がありません。");
                 if (FindDeepChild(root.transform, "DropPosition") == null) errors.Add("DropPosition がありません。");
                 if (FindDeepChild(root.transform, "LeftGripSensor") == null) errors.Add("LeftGripSensor がありません。");
@@ -175,9 +185,21 @@ namespace MCT.CraneGame.Editor
                 if (root.GetComponentsInChildren<Prize>(true).Length < 1) errors.Add("景品がありません。");
                 foreach (Prize prize in root.GetComponentsInChildren<Prize>(true))
                 {
-                    if (prize.GetComponent<Rigidbody>() == null || prize.GetComponent<Collider>() == null)
+                    if (prize.GetComponent<Rigidbody>() == null || prize.GetComponentInChildren<Collider>(true) == null)
                     {
                         errors.Add(prize.name + " にRigidbodyまたはColliderがありません。");
+                    }
+                }
+                MeshCollider[] clawMeshColliders = root.GetComponentsInChildren<MeshCollider>(true);
+                if (clawMeshColliders.Length == 0)
+                {
+                    errors.Add("爪のMeshColliderがありません。");
+                }
+                foreach (MeshCollider meshCollider in clawMeshColliders)
+                {
+                    if (!meshCollider.convex)
+                    {
+                        errors.Add(meshCollider.name + " のMeshColliderがConvexではありません。");
                     }
                 }
                 ValidateNoNestedClusterItems(root, errors);
@@ -186,7 +208,7 @@ namespace MCT.CraneGame.Editor
 
             if (errors.Count == 0)
             {
-                Debug.Log("CraneGame validation PASS: 必須参照、クレーン2、景品物理、座標Markerを確認しました。", root);
+                Debug.Log("CraneGame validation PASS: 必須参照、newCrene、景品物理、座標Markerを確認しました。", root);
             }
             else
             {
@@ -270,10 +292,15 @@ namespace MCT.CraneGame.Editor
         [MenuItem("Tools/Crane Game/Repair Cluster Item Hierarchy In Prefab")]
         public static void RepairClusterItemHierarchyInPrefab()
         {
+            EnsureFolders();
+            EnsureCraneModelAsset();
+            EnsurePrizeModelAsset();
             string path = BasePath + "/Prefabs/CraneGame.prefab";
             GameObject contents = PrefabUtility.LoadPrefabContents(path);
             try
             {
+                ReplaceCraneWithNewModel(contents);
+                ReplacePrizesWithMagatama(contents);
                 RepairClusterItemHierarchy(contents);
                 ApplyGameplaySafetySettings(contents);
                 EnableClusterPrizeItems(contents, false);
@@ -306,7 +333,7 @@ namespace MCT.CraneGame.Editor
         static GameObject FindOrCreateModelInstance()
         {
             GameObject sceneModel = SceneManager.GetActiveScene().GetRootGameObjects()
-                .FirstOrDefault(x => x.name == "クレーン2");
+                .FirstOrDefault(x => x.name == ModelObjectName);
             if (sceneModel != null)
             {
                 return sceneModel;
@@ -318,8 +345,8 @@ namespace MCT.CraneGame.Editor
                 return null;
             }
             GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(asset);
-            instance.name = "クレーン2";
-            Undo.RegisterCreatedObjectUndo(instance, "Instantiate Crane2");
+            instance.name = ModelObjectName;
+            Undo.RegisterCreatedObjectUndo(instance, "Instantiate newCrene");
             return instance;
         }
 
@@ -358,13 +385,33 @@ namespace MCT.CraneGame.Editor
 
         static Prize CreatePrize(string name, Vector3 position, Transform parent, Material material)
         {
-            GameObject prizeObject = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            Undo.RegisterCreatedObjectUndo(prizeObject, "Create prize");
-            prizeObject.name = name;
-            prizeObject.transform.SetParent(parent, true);
+            GameObject prizeObject = NewObject(name, parent);
             prizeObject.transform.position = position;
-            prizeObject.transform.localScale = new Vector3(0.52f, 0.38f, 0.52f);
-            prizeObject.GetComponent<Renderer>().sharedMaterial = material;
+            GameObject modelAsset = AssetDatabase.LoadAssetAtPath<GameObject>(PrizeModelPath);
+            if (modelAsset == null)
+            {
+                throw new InvalidOperationException("magatama model is missing: " + PrizeModelPath);
+            }
+
+            GameObject visual = (GameObject)PrefabUtility.InstantiatePrefab(modelAsset, prizeObject.transform);
+            visual.name = "MagatamaVisual";
+            visual.transform.localPosition = Vector3.zero;
+            visual.transform.localRotation = Quaternion.identity;
+            visual.transform.localScale = Vector3.one;
+
+            Bounds sourceBounds = CalculateRendererBounds(visual);
+            float longest = Mathf.Max(sourceBounds.size.x, Mathf.Max(sourceBounds.size.y, sourceBounds.size.z));
+            float scale = longest > 0.0001f ? 0.7f / longest : 1f;
+            visual.transform.localScale = Vector3.one * scale;
+            Bounds scaledBounds = CalculateRendererBounds(visual);
+            visual.transform.position += prizeObject.transform.position - scaledBounds.center;
+
+            foreach (Renderer renderer in visual.GetComponentsInChildren<Renderer>(true))
+            {
+                renderer.sharedMaterial = material;
+            }
+            ConfigurePrizeMeshColliders(visual);
+
             Rigidbody body = prizeObject.AddComponent<Rigidbody>();
             body.mass = 0.34f;
             body.linearDamping = 0.35f;
@@ -373,6 +420,92 @@ namespace MCT.CraneGame.Editor
             body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             Prize prize = prizeObject.AddComponent<Prize>();
             return prize;
+        }
+
+        static void ConfigurePrizeMeshColliders(GameObject visual)
+        {
+            foreach (Collider existing in visual.GetComponentsInChildren<Collider>(true))
+            {
+                UnityEngine.Object.DestroyImmediate(existing, true);
+            }
+            foreach (MeshFilter meshFilter in visual.GetComponentsInChildren<MeshFilter>(true))
+            {
+                if (meshFilter.sharedMesh == null)
+                {
+                    continue;
+                }
+                MeshCollider collider = meshFilter.gameObject.AddComponent<MeshCollider>();
+                collider.sharedMesh = GetOrCreateColliderMesh(meshFilter.sharedMesh, "Prize_" + meshFilter.name);
+                collider.convex = true;
+            }
+        }
+
+        static Mesh GetOrCreateColliderMesh(Mesh source, string assetName)
+        {
+            const int maxPoints = 64;
+            Vector3[] vertices = source.vertices;
+            List<Vector3> points = new List<Vector3>();
+            if (vertices.Length > 0)
+            {
+                int[] extremes = new int[6];
+                for (int i = 1; i < vertices.Length; i++)
+                {
+                    if (vertices[i].x < vertices[extremes[0]].x) extremes[0] = i;
+                    if (vertices[i].x > vertices[extremes[1]].x) extremes[1] = i;
+                    if (vertices[i].y < vertices[extremes[2]].y) extremes[2] = i;
+                    if (vertices[i].y > vertices[extremes[3]].y) extremes[3] = i;
+                    if (vertices[i].z < vertices[extremes[4]].z) extremes[4] = i;
+                    if (vertices[i].z > vertices[extremes[5]].z) extremes[5] = i;
+                }
+                foreach (int index in extremes)
+                {
+                    AddUniquePoint(points, vertices[index]);
+                }
+                int remaining = Mathf.Max(1, maxPoints - points.Count);
+                int stride = Mathf.Max(1, Mathf.CeilToInt(vertices.Length / (float)remaining));
+                for (int i = 0; i < vertices.Length && points.Count < maxPoints; i += stride)
+                {
+                    AddUniquePoint(points, vertices[i]);
+                }
+            }
+
+            while (points.Count < 4)
+            {
+                points.Add(points.Count == 0 ? Vector3.zero : points[0] + Vector3.one * (0.0001f * points.Count));
+            }
+            int[] triangles = new int[(points.Count - 2) * 3];
+            for (int i = 0; i < points.Count - 2; i++)
+            {
+                triangles[i * 3] = 0;
+                triangles[i * 3 + 1] = i + 1;
+                triangles[i * 3 + 2] = i + 2;
+            }
+
+            string safeName = string.Concat(assetName.Select(c => char.IsLetterOrDigit(c) || c == '_' ? c : '_'));
+            string path = BasePath + "/Models/Colliders/" + safeName + ".asset";
+            Mesh result = AssetDatabase.LoadAssetAtPath<Mesh>(path);
+            if (result == null)
+            {
+                result = new Mesh { name = safeName };
+                AssetDatabase.CreateAsset(result, path);
+            }
+            else
+            {
+                result.Clear();
+            }
+            result.SetVertices(points);
+            result.triangles = triangles;
+            result.RecalculateBounds();
+            EditorUtility.SetDirty(result);
+            return result;
+        }
+
+        static void AddUniquePoint(List<Vector3> points, Vector3 point)
+        {
+            if (!points.Contains(point))
+            {
+                points.Add(point);
+            }
         }
 
         static void CreateDropZone(Transform root, Material chuteMaterial)
@@ -446,13 +579,14 @@ namespace MCT.CraneGame.Editor
 
             DestroyChildIfPresent(model, "LeftGripSensor");
             DestroyChildIfPresent(model, "RightGripSensor");
-            foreach (BoxCollider existing in model.GetComponentsInChildren<BoxCollider>(true))
+            foreach (Collider existing in model.GetComponentsInChildren<Collider>(true))
             {
                 UnityEngine.Object.DestroyImmediate(existing, true);
             }
 
-            // Fit physical colliders only to the existing FBX arm meshes. The former
-            // implementation also boxed the dome and decorative meshes.
+            // Fit convex mesh colliders only to the existing FBX arm meshes. Convex
+            // is required because LiftAssembly owns a Rigidbody and moves at runtime.
+            // Decorative meshes stay collider-free so they cannot push prizes away.
             foreach (MeshFilter meshFilter in model.GetComponentsInChildren<MeshFilter>(true))
             {
                 if (meshFilter.sharedMesh == null ||
@@ -460,9 +594,9 @@ namespace MCT.CraneGame.Editor
                 {
                     continue;
                 }
-                BoxCollider physical = meshFilter.gameObject.AddComponent<BoxCollider>();
-                physical.center = meshFilter.sharedMesh.bounds.center;
-                physical.size = meshFilter.sharedMesh.bounds.size;
+                MeshCollider physical = meshFilter.gameObject.AddComponent<MeshCollider>();
+                physical.sharedMesh = GetOrCreateColliderMesh(meshFilter.sharedMesh, "Claw_" + meshFilter.name);
+                physical.convex = true;
             }
 
             CreateGripSensor(leftJoint, gripAnchor, "LeftGripSensor");
@@ -518,13 +652,23 @@ namespace MCT.CraneGame.Editor
 
         static void RepairExisting(GameObject root)
         {
+            EnsureFolders();
+            EnsureCraneModelAsset();
+            EnsurePrizeModelAsset();
+            Transform model = ReplaceCraneWithNewModel(root);
             RepairClusterItemHierarchy(root);
             ApplyGameplaySafetySettings(root);
             EnableClusterPrizeItems(root, true);
 
-            Transform model = FindDeepChild(root.transform, "クレーン2");
             if (model != null)
             {
+                Transform anchor = FindDeepChild(root.transform, "GripAnchor");
+                Bounds modelBounds = CalculateRendererBounds(model.gameObject);
+                if (anchor != null)
+                {
+                    anchor.position = new Vector3(modelBounds.center.x,
+                        modelBounds.min.y + Mathf.Clamp(modelBounds.size.y * 0.13f, 0.08f, 0.28f), modelBounds.center.z);
+                }
                 RepairClawOpenPose(model);
                 foreach (MeshCollider meshCollider in model.GetComponentsInChildren<MeshCollider>(true))
                 {
@@ -567,6 +711,8 @@ namespace MCT.CraneGame.Editor
                 SetSerializedFloat(gripAssist, "jointBreakTorque", 5000f);
             }
 
+            EnsurePrizeModelAsset();
+            ReplacePrizesWithMagatama(root);
             RepairPrizePrefabAsset();
             foreach (Prize prize in root.GetComponentsInChildren<Prize>(true))
             {
@@ -595,6 +741,110 @@ namespace MCT.CraneGame.Editor
             }
             EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
             EditorSceneManager.SaveOpenScenes();
+        }
+
+        static Transform ReplaceCraneWithNewModel(GameObject root)
+        {
+            Transform existing = FindDeepChild(root.transform, ModelObjectName);
+            if (existing != null)
+            {
+                return existing;
+            }
+
+            Transform oldModel = FindDeepChild(root.transform, "クレーン2");
+            Transform lift = FindDeepChild(root.transform, "LiftAssembly");
+            GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(ModelPath);
+            if (lift == null || asset == null)
+            {
+                Debug.LogError("CraneGameSetup: newCrene差し替えに必要なLiftAssemblyまたはModelがありません。", root);
+                return null;
+            }
+
+            Vector3 localPosition = oldModel != null ? oldModel.localPosition : Vector3.zero;
+            Quaternion localRotation = oldModel != null ? oldModel.localRotation : Quaternion.identity;
+            Vector3 localScale = oldModel != null ? oldModel.localScale : Vector3.one;
+            if (oldModel != null)
+            {
+                UnityEngine.Object.DestroyImmediate(oldModel.gameObject);
+            }
+
+            GameObject replacement = (GameObject)PrefabUtility.InstantiatePrefab(asset, lift);
+            replacement.name = ModelObjectName;
+            replacement.transform.localPosition = localPosition;
+            replacement.transform.localRotation = localRotation;
+            replacement.transform.localScale = localScale;
+            return replacement.transform;
+        }
+
+        static Prize[] ReplacePrizesWithMagatama(GameObject root)
+        {
+            Prize[] existing = root.GetComponentsInChildren<Prize>(true)
+                .OrderBy(prize => prize.name).ToArray();
+            if (existing.Length == 0)
+            {
+                return existing;
+            }
+
+            bool alreadyMagatama = existing.Length >= SafeRespawnLocals.Length &&
+                existing.All(prize => FindDeepChild(prize.transform, "MagatamaVisual") != null);
+            if (alreadyMagatama)
+            {
+                for (int i = 0; i < existing.Length; i++)
+                {
+                    Prize prize = existing[i];
+                    Transform visual = FindDeepChild(prize.transform, "MagatamaVisual");
+                    ConfigurePrizeMeshColliders(visual.gameObject);
+                    prize.name = "Prize_" + (i + 1);
+                    Transform spawn = FindDeepChild(root.transform, "RespawnPosition_" + (i + 1));
+                    if (spawn != null)
+                    {
+                        prize.transform.SetPositionAndRotation(spawn.position, spawn.rotation);
+                    }
+                }
+                return existing;
+            }
+
+            PrizeRespawner respawner = root.GetComponent<PrizeRespawner>();
+            List<Prize> replacements = new List<Prize>();
+            foreach (Prize oldPrize in existing)
+            {
+                Transform parent = oldPrize.transform.parent;
+                Vector3 position = oldPrize.transform.position;
+                Quaternion rotation = oldPrize.transform.rotation;
+                Renderer oldRenderer = oldPrize.GetComponentInChildren<Renderer>(true);
+                Material material = oldRenderer != null ? oldRenderer.sharedMaterial : null;
+                string prizeName = oldPrize.name;
+                UnityEngine.Object.DestroyImmediate(oldPrize.gameObject);
+
+                Prize replacement = CreatePrize(prizeName, position, parent, material);
+                replacement.transform.rotation = rotation;
+                replacement.Configure(respawner);
+                ConfigureClusterPrize(replacement.gameObject);
+                replacements.Add(replacement);
+            }
+
+            Transform prizesParent = FindDeepChild(root.transform, "Prizes");
+            Material fallbackMaterial = AssetDatabase.LoadAssetAtPath<Material>(BasePath + "/Materials/PrizeCoral.mat");
+            while (replacements.Count < SafeRespawnLocals.Length && prizesParent != null)
+            {
+                int index = replacements.Count;
+                Transform spawn = FindDeepChild(root.transform, "RespawnPosition_" + (index + 1));
+                Vector3 position = spawn != null ? spawn.position : root.transform.TransformPoint(SafeRespawnLocals[index]);
+                Prize replacement = CreatePrize("Prize_" + (index + 1), position, prizesParent, fallbackMaterial);
+                replacement.Configure(respawner);
+                ConfigureClusterPrize(replacement.gameObject);
+                replacements.Add(replacement);
+            }
+            for (int i = 0; i < replacements.Count; i++)
+            {
+                replacements[i].name = "Prize_" + (i + 1);
+                Transform spawn = FindDeepChild(root.transform, "RespawnPosition_" + (i + 1));
+                if (spawn != null)
+                {
+                    replacements[i].transform.SetPositionAndRotation(spawn.position, spawn.rotation);
+                }
+            }
+            return replacements.ToArray();
         }
 
         static GameObject CreateCube(string name, Transform parent, Vector3 localPosition, Vector3 localScale, Material material)
@@ -745,11 +995,90 @@ namespace MCT.CraneGame.Editor
             }
         }
 
+        static void SetSerializedVector3(UnityEngine.Object target, string propertyName, Vector3 value)
+        {
+            SerializedObject serialized = new SerializedObject(target);
+            SerializedProperty property = serialized.FindProperty(propertyName);
+            if (property != null)
+            {
+                property.vector3Value = value;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
         static void EnsureFolders()
         {
             CreateFolderIfMissing("Assets/MCT_creative_exercises_2026", "CraneGame");
             CreateFolderIfMissing(BasePath, "Materials");
+            CreateFolderIfMissing(BasePath, "Models");
+            CreateFolderIfMissing(BasePath + "/Models", "Colliders");
             CreateFolderIfMissing(BasePath, "Prefabs");
+        }
+
+        static void EnsurePrizeModelAsset()
+        {
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(PrizeModelPath) != null)
+            {
+                EnsureModelReadable(PrizeModelPath);
+                return;
+            }
+            if (System.IO.File.Exists(PrizeModelPath))
+            {
+                AssetDatabase.ImportAsset(PrizeModelPath, ImportAssetOptions.ForceSynchronousImport);
+                if (AssetDatabase.LoadAssetAtPath<GameObject>(PrizeModelPath) != null)
+                {
+                    EnsureModelReadable(PrizeModelPath);
+                    return;
+                }
+            }
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(PrizeModelSourcePath) == null)
+            {
+                throw new InvalidOperationException("magatama source model is missing: " + PrizeModelSourcePath);
+            }
+            if (!AssetDatabase.CopyAsset(PrizeModelSourcePath, PrizeModelPath))
+            {
+                throw new InvalidOperationException("Failed to copy magatama model to " + PrizeModelPath);
+            }
+            AssetDatabase.ImportAsset(PrizeModelPath, ImportAssetOptions.ForceSynchronousImport);
+            EnsureModelReadable(PrizeModelPath);
+        }
+
+        static void EnsureCraneModelAsset()
+        {
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(ModelPath) != null)
+            {
+                EnsureModelReadable(ModelPath);
+                return;
+            }
+            if (System.IO.File.Exists(ModelPath))
+            {
+                AssetDatabase.ImportAsset(ModelPath, ImportAssetOptions.ForceSynchronousImport);
+                if (AssetDatabase.LoadAssetAtPath<GameObject>(ModelPath) != null)
+                {
+                    EnsureModelReadable(ModelPath);
+                    return;
+                }
+            }
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(CraneModelSourcePath) == null)
+            {
+                throw new InvalidOperationException("newCrene source model is missing: " + CraneModelSourcePath);
+            }
+            if (!AssetDatabase.CopyAsset(CraneModelSourcePath, ModelPath))
+            {
+                throw new InvalidOperationException("Failed to copy newCrene model to " + ModelPath);
+            }
+            AssetDatabase.ImportAsset(ModelPath, ImportAssetOptions.ForceSynchronousImport);
+            EnsureModelReadable(ModelPath);
+        }
+
+        static void EnsureModelReadable(string path)
+        {
+            ModelImporter importer = AssetImporter.GetAtPath(path) as ModelImporter;
+            if (importer != null && !importer.isReadable)
+            {
+                importer.isReadable = true;
+                importer.SaveAndReimport();
+            }
         }
 
         static void CreateFolderIfMissing(string parent, string child)
@@ -879,9 +1208,10 @@ namespace MCT.CraneGame.Editor
         static void ApplyGameplaySafetySettings(GameObject root)
         {
             ApplyCabinetClearanceSettings(root);
+            ApplyScaledLayoutSettings(root);
             RepairRespawnLayout(root);
 
-            Transform model = FindDeepChild(root.transform, "クレーン2");
+            Transform model = FindDeepChild(root.transform, ModelObjectName);
             if (model != null)
             {
                 RepairClawOpenPose(model);
@@ -907,7 +1237,8 @@ namespace MCT.CraneGame.Editor
             CraneGrabSequence sequence = root.GetComponent<CraneGrabSequence>();
             if (sequence != null)
             {
-                SetSerializedFloat(sequence, "lowerDistance", 1.72f);
+                SetSerializedFloat(sequence, "lowerDistance", 3.65f);
+                SetSerializedFloat(sequence, "minimumGripHeight", 0.68f);
             }
 
             Transform drop = FindDeepChild(root.transform, "DropPosition");
@@ -951,6 +1282,13 @@ namespace MCT.CraneGame.Editor
                 }
             }
 
+            PrizeRespawner respawner = root.GetComponent<PrizeRespawner>();
+            if (respawner != null)
+            {
+                SetSerializedVector3(respawner, "localBoundsCenter", new Vector3(0f, 1.8f, 0f));
+                SetSerializedVector3(respawner, "localBoundsSize", new Vector3(5.7f, 5.65f, 4.2f));
+            }
+
             Prize[] prizes = root.GetComponentsInChildren<Prize>(true)
                 .OrderBy(prize => prize.name).ToArray();
             for (int i = 0; i < prizes.Length && i < points.Length; i++)
@@ -964,7 +1302,7 @@ namespace MCT.CraneGame.Editor
 
         static void ValidateCraneClearance(GameObject root, List<string> errors)
         {
-            Transform model = FindDeepChild(root.transform, "クレーン2");
+            Transform model = FindDeepChild(root.transform, ModelObjectName);
             Transform movementSpace = FindDeepChild(root.transform, "MovementSpace");
             Transform carriage = FindDeepChild(root.transform, "Carriage");
             if (model == null || movementSpace == null || carriage == null)
@@ -1011,10 +1349,11 @@ namespace MCT.CraneGame.Editor
             float front = SafeZLimits.x + relativeMin.z;
             float back = SafeZLimits.y + relativeMax.z;
 
-            // Cabinet inner faces are approximately X +/-1.71 and Z +/-1.59.
+            // Cabinet inner faces are approximately X +/-1.71 and Z +/-1.59
+            // before applying the 1.5x cabinet layout scale.
             // Keep an additional margin for collider thickness and network interpolation.
-            const float innerX = 1.63f;
-            const float innerZ = 1.50f;
+            const float innerX = 1.63f * CabinetScale;
+            const float innerZ = 1.50f * CabinetScale;
             if (left < -innerX || right > innerX || front < -innerZ || back > innerZ)
             {
                 errors.Add(string.Format("Crane可動域が筐体内寸を超えます: X[{0:F2}, {1:F2}] Z[{2:F2}, {3:F2}]",
@@ -1066,6 +1405,62 @@ namespace MCT.CraneGame.Editor
                 child.localPosition = position;
                 child.localScale = scale;
             }
+
+            // Keep the portable prefab root at (1,1,1). Scaling this self-contained
+            // group enlarges both the cabinet meshes and their BoxColliders together.
+            cabinet.localScale = Vector3.one * CabinetScale;
+        }
+
+        static void ApplyScaledLayoutSettings(GameObject root)
+        {
+            Transform controls = FindDeepChild(root.transform, "Controls");
+            if (controls != null)
+            {
+                controls.localPosition = new Vector3(0f, 0f, -1.58f * CabinetScale);
+                // Keep the controls at their original vertical size so the top stays
+                // within a comfortable desktop/VR sight line.
+                controls.localScale = new Vector3(CabinetScale, 1f, CabinetScale);
+            }
+
+            Transform chute = FindDeepChild(root.transform, "PrizeChute");
+            if (chute != null)
+            {
+                chute.localPosition = new Vector3(SafeDropXZ.x, 0f, SafeDropXZ.y);
+                chute.localScale = Vector3.one * CabinetScale;
+            }
+
+            Transform guide = FindDeepChild(root.transform, "GuideDisplay");
+            if (guide != null)
+            {
+                guide.localPosition = new Vector3(0f, 2.82f * CabinetScale, -1.34f * CabinetScale);
+                guide.localScale = Vector3.one * CabinetScale;
+            }
+
+            Transform lightTransform = FindDeepChild(root.transform, "CraneInteriorLight");
+            if (lightTransform != null)
+            {
+                lightTransform.localPosition = new Vector3(0f, 2.95f * CabinetScale, -0.2f * CabinetScale);
+                Light light = lightTransform.GetComponent<Light>();
+                if (light != null)
+                {
+                    light.range = 6f * CabinetScale;
+                }
+            }
+
+            SetLocalY(FindDeepChild(root.transform, "Carriage"), ScaledCarriageHeight);
+            SetLocalY(FindDeepChild(root.transform, "HomePosition"), ScaledCarriageHeight);
+            SetLocalY(FindDeepChild(root.transform, "DropPosition"), ScaledCarriageHeight);
+        }
+
+        static void SetLocalY(Transform target, float y)
+        {
+            if (target == null)
+            {
+                return;
+            }
+            Vector3 local = target.localPosition;
+            local.y = y;
+            target.localPosition = local;
         }
 
         static void EnableClusterPrizeItems(GameObject root, bool revertSceneOverrides)

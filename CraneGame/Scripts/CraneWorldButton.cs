@@ -18,9 +18,24 @@ namespace MCT.CraneGame
 
         [SerializeField] CraneController receiver;
         [SerializeField] Command command;
+        [SerializeField, Min(0f)] float pressDepth = 0.035f;
+
+        Vector3 releasedLocalPosition;
+        bool pressed;
+
+        void Awake()
+        {
+            releasedLocalPosition = transform.localPosition;
+        }
 
         public void Press()
         {
+            if (!pressed)
+            {
+                releasedLocalPosition = transform.localPosition;
+                transform.localPosition = releasedLocalPosition + Vector3.down * pressDepth;
+                pressed = true;
+            }
             if (receiver == null)
             {
                 return;
@@ -38,6 +53,11 @@ namespace MCT.CraneGame
 
         public void Release()
         {
+            if (pressed)
+            {
+                transform.localPosition = releasedLocalPosition;
+                pressed = false;
+            }
             if (receiver != null && command <= Command.MoveBack)
             {
                 receiver.SetMoveInput(Vector2.zero);
